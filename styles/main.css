@@ -1,0 +1,60 @@
+body {
+    margin: 0;
+    font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.min-h-screen {
+    min-height: 100vh;
+}
+
+.bg-cover {
+    background-size: cover;
+    background-position: center;
+}
+
+.bg-center {
+    background-position: center;
+}
+
+.backdrop-blur-md {
+    backdrop-filter: blur(12px);
+}
+
+.rounded-2xl {
+    border-radius: 1rem;
+}
+
+.text-white {
+    color: #fff;
+}
+
+.text-xl {
+    font-size: 1.25rem;
+}
+
+.text-4xl {
+    font-size: 2.25rem;
+}
+
+.font-light {
+    font-weight: 300;
+}
+
+.bg-indigo-500 {
+    background-color: #6366F1;
+}
+
+.px-8 {
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
+
+.py-6 {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+}
