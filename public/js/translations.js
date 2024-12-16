@@ -21,11 +21,6 @@ const translations = {
         personalizeSettings: 'Personalize Settings',
         welcome: 'Welcome,',
 
-        // Room Controls
-        temperature: 'Temperature',
-        lighting: 'Lighting',
-        volume: 'Volume',
-
         // Meals
         breakfast: 'Breakfast',
         lunch: 'Lunch',
@@ -53,11 +48,6 @@ const translations = {
         roomControlsDesc: 'Personalizar tu Espacio',
         personalizeSettings: 'Personalizar Configuración',
         welcome: 'Bienvenido,',
-
-        // Room Controls
-        temperature: 'Temperatura',
-        lighting: 'Iluminación',
-        volume: 'Volumen',
 
         // Meals
         breakfast: 'Desayuno',

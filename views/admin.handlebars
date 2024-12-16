@@ -14,7 +14,7 @@
                 <h2><i class="fas fa-key"></i> Valid IDs</h2>
                 <div class="id-tags">
                     {{#each validIds}}
-                        <span class="id-tag">{{this}}</span>
+                        <a href="/user/{{this}}" class="id-tag" target="_{{this}}">{{this}}</a>
                     {{/each}}
                 </div>
             </div>

@@ -24,37 +24,22 @@
                 <div class="container mx-auto px-8 py-3">
                     <div class="flex items-center justify-end space-x-8">
                     <div class="flex items-center space-x-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-thermometer-sun w-4 h-4 text-[#D4AF37]">
-                            <path d="M12 9a4 4 0 0 0-2 7.5"></path>
-                            <path d="M12 3v2"></path>
-                            <path d="m6.6 18.4-1.4 1.4"></path>
-                            <path d="M20 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"></path>
-                            <path d="M4 13H2"></path>
-                            <path d="M6.34 7.34 4.93 5.93"></path>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar w-4 h-4 text-[#D4AF37]">
+                            <path d="M8 2v4"></path>
+                            <path d="M16 2v4"></path>
+                            <rect width="18" height="18" x="3" y="4" rx="2"></rect>
+                            <path d="M3 10h18"></path>
                         </svg>
-                        <span class="text-white/60 text-sm" data-i18n="temperature">Temperature:</span><span class="text-white text-sm font-medium">23°C</span>
+                        <span class="text-white/60 text-sm" data-i18n="date">Date:</span>
+                        <time class="text-white text-sm font-medium" id="currentDate"></time>
                     </div>
                     <div class="flex items-center space-x-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sun w-4 h-4 text-[#D4AF37]">
-                            <circle cx="12" cy="12" r="4"></circle>
-                            <path d="M12 2v2"></path>
-                            <path d="M12 20v2"></path>
-                            <path d="m4.93 4.93 1.41 1.41"></path>
-                            <path d="m17.66 17.66 1.41 1.41"></path>
-                            <path d="M2 12h2"></path>
-                            <path d="M20 12h2"></path>
-                            <path d="m6.34 17.66-1.41 1.41"></path>
-                            <path d="m19.07 4.93-1.41 1.41"></path>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock w-4 h-4 text-[#D4AF37]">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
                         </svg>
-                        <span class="text-white/60 text-sm" data-i18n="lighting">Lighting:</span><span class="text-white text-sm font-medium">70%</span>
-                    </div>
-                    <div class="flex items-center space-x-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-volume2 w-4 h-4 text-[#D4AF37]">
-                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
-                        </svg>
-                        <span class="text-white/60 text-sm" data-i18n="volume">Volume:</span><span class="text-white text-sm font-medium">40%</span>
+                        <span class="text-white/60 text-sm" data-i18n="time">Time:</span>
+                        <time class="text-white text-sm font-medium" id="currentTime"></time>
                     </div>
                     </div>
                 </div>
@@ -78,28 +63,23 @@
                                 </h2>
                             </div>
                         </div>
-                        <div class="flex flex-col items-end space-y-2">
-                            <div class="flex items-center space-x-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar w-6 h-6 text-[#D4AF37]">
-                                <path d="M8 2v4"></path>
-                                <path d="M16 2v4"></path>
-                                <rect width="18" height="18" x="3" y="4" rx="2"></rect>
-                                <path d="M3 10h18"></path>
-                                </svg>
-                                <time class="text-white/80 text-lg font-light" id="currentDate"></time>
-                            </div>
-                            <div class="flex items-center space-x-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock w-7 h-7 text-[#D4AF37]">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <polyline points="12 6 12 12 16 14"></polyline>
-                                </svg>
-                                <time class="text-white text-2xl font-light" id="currentTime"></time>
-                            </div>
-                        </div>
                     </div>
                     </div>
                 </div>
                 <div class="grid grid-cols-3 gap-6">
+                    <a href="https://player.mitv.bz/portal/browser.html" class="group relative bg-[#111827]/40 backdrop-blur-md rounded-2xl p-8 border border-white/5 transition-all duration-300 hover:bg-[#1a2234]/40 flex flex-col items-center justify-center">
+                        <div class="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div class="relative flex flex-col items-center">
+                            <div class="inline-flex p-4 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg mb-6 group-hover:scale-110 transition-transform duration-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play-circle w-8 h-8 text-white">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polygon points="10 8 16 12 10 16 10 8"></polygon>
+                                </svg>
+                            </div>
+                            <h3 class="text-2xl font-medium text-white mb-2 group-hover:text-white/90" data-i18n="entertainment">Entertainment</h3>
+                            <p class="text-white/60 group-hover:text-white/70" data-i18n="entertainmentDesc">Premium Content</p>
+                        </div>
+                    </a>
                     <button id="alertButton" class="group relative bg-[#111827]/40 backdrop-blur-md rounded-2xl p-8 border border-white/5 transition-all duration-300 hover:bg-[#1a2234]/40">
                     <div class="absolute inset-0 bg-gradient-to-br from-rose-500/20 to-red-500/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     <div class="relative flex flex-col items-center">
@@ -137,19 +117,6 @@
                         </div>
                         <h3 class="text-2xl font-medium text-white mb-2 group-hover:text-white/90" data-i18n="chat">Chat</h3>
                         <p class="text-white/60 group-hover:text-white/70" data-i18n="chatDesc">Chat With Staff</p>
-                    </div>
-                    </button>
-                    <button class="group relative bg-[#111827]/40 backdrop-blur-md rounded-2xl p-8 border border-white/5 transition-all duration-300 hover:bg-[#1a2234]/40">
-                    <div class="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <div class="relative flex flex-col items-center">
-                        <div class="inline-flex p-4 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg mb-6 group-hover:scale-110 transition-transform duration-300">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play-circle w-8 h-8 text-white">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <polygon points="10 8 16 12 10 16 10 8"></polygon>
-                            </svg>
-                        </div>
-                        <h3 class="text-2xl font-medium text-white mb-2 group-hover:text-white/90" data-i18n="entertainment">Entertainment</h3>
-                        <p class="text-white/60 group-hover:text-white/70" data-i18n="entertainmentDesc">Premium Content</p>
                     </div>
                     </button>
                     <button class="group relative bg-[#111827]/40 backdrop-blur-md rounded-2xl p-8 border border-white/5 transition-all duration-300 hover:bg-[#1a2234]/40">
@@ -278,7 +245,7 @@
         const now = new Date();
         
         // Update date
-        const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const dateOptions = { weekday: 'short', month: 'short', day: 'numeric' };
         document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', dateOptions);
         
         // Update time
