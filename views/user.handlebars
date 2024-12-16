@@ -85,14 +85,14 @@
                                 <rect width="18" height="18" x="3" y="4" rx="2"></rect>
                                 <path d="M3 10h18"></path>
                                 </svg>
-                                <time class="text-white/80 text-lg font-light">Friday, December 13, 2024</time>
+                                <time class="text-white/80 text-lg font-light" id="currentDate"></time>
                             </div>
                             <div class="flex items-center space-x-3">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock w-7 h-7 text-[#D4AF37]">
                                 <circle cx="12" cy="12" r="10"></circle>
                                 <polyline points="12 6 12 12 16 14"></polyline>
                                 </svg>
-                                <time class="text-white text-2xl font-light">03:19 PM</time>
+                                <time class="text-white text-2xl font-light" id="currentTime"></time>
                             </div>
                         </div>
                     </div>
@@ -202,6 +202,19 @@
     const usernameSpan = document.getElementById('username');
     const alertButton = document.getElementById('alertButton');
 
+    // Load saved username from localStorage on page load
+    const savedUsername = localStorage.getItem('username');
+    if (savedUsername) {
+        usernameSpan.textContent = savedUsername;
+    }
+
+    // Send saved username to server when connecting
+    socket.on('connect', () => {
+        if (savedUsername) {
+            socket.emit('restore_username', { username: savedUsername });
+        }
+    });
+
     socket.on('connect_error', (error) => {
         if (error.message === 'Invalid ID') {
             alert('Connection failed: Invalid ID');
@@ -209,9 +222,10 @@
         }
     });
 
-    // Listen for username updates
+    // Listen for username updates and save to localStorage
     socket.on('username_updated', ({ username }) => {
         usernameSpan.textContent = username;
+        localStorage.setItem('username', username);
     });
 
     // Handle alert button click
@@ -228,4 +242,24 @@
             io.to(adminId).emit(event, data);
         });
     }
+
+    // Update date and time
+    function updateDateTime() {
+        const now = new Date();
+        
+        // Update date
+        const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', dateOptions);
+        
+        // Update time
+        document.getElementById('currentTime').textContent = now.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+        });
+    }
+
+    // Update immediately and then every second
+    updateDateTime();
+    setInterval(updateDateTime, 1000);
 </script> 

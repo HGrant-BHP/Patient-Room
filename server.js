@@ -110,6 +110,21 @@ io.on('connection', (socket) => {
     }));
     broadcastToAdmins('users_list', usersList);
 
+    // Handle restore_username event
+    socket.on('restore_username', ({ username }) => {
+        if (users.has(socket.id)) {
+            users.get(socket.id).name = username;
+            
+            // Broadcast updated users list to all admins
+            const updatedUsersList = Array.from(users.entries()).map(([id, data]) => ({
+                id,
+                userId: data.userId,
+                name: data.name
+            }));
+            broadcastToAdmins('users_list', updatedUsersList);
+        }
+    });
+
     // Handle alert button click
     socket.on('alert_clicked', () => {
         const user = users.get(socket.id);
