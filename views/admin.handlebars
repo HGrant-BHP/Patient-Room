@@ -25,6 +25,24 @@
         <h2>Alert Log</h2>
         <div id="alerts"></div>
     </div>
+
+    <div id="mealSelections">
+        <h2>Meal Selections</h2>
+        <div class="meal-times">
+            <div class="meal-time">
+                <h3><i class="fas fa-sun"></i> Breakfast</h3>
+                <div id="breakfastSelections" class="selections-list"></div>
+            </div>
+            <div class="meal-time">
+                <h3><i class="fas fa-cloud-sun"></i> Lunch</h3>
+                <div id="lunchSelections" class="selections-list"></div>
+            </div>
+            <div class="meal-time">
+                <h3><i class="fas fa-moon"></i> Dinner</h3>
+                <div id="dinnerSelections" class="selections-list"></div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -152,6 +170,59 @@
             editDiv.classList.add('hidden');
         }
     }
+
+    // Handle meal selections update
+    socket.on('meal_selections', (selections) => {
+        updateDebugInfo(`Received meal selections update`);
+        
+        // Clear current selections
+        document.getElementById('breakfastSelections').innerHTML = '';
+        document.getElementById('lunchSelections').innerHTML = '';
+        document.getElementById('dinnerSelections').innerHTML = '';
+        
+        // Group selections by meal type
+        const mealTypes = ['breakfast', 'lunch', 'dinner'];
+        const selectionsByType = {
+            breakfast: [],
+            lunch: [],
+            dinner: []
+        };
+
+        selections.forEach(selection => {
+            mealTypes.forEach(type => {
+                if (selection[type]) {
+                    const user = Array.from(users.entries())
+                        .find(([_, data]) => data.userId === selection.userId);
+                    if (user) {
+                        selectionsByType[type].push({
+                            userName: user[1].name,
+                            userId: user[1].userId,
+                            mealName: selection[type].name
+                        });
+                    }
+                }
+            });
+        });
+
+        // Update the UI for each meal type
+        mealTypes.forEach(type => {
+            const container = document.getElementById(`${type}Selections`);
+            if (selectionsByType[type].length === 0) {
+                container.innerHTML = '<div class="no-selections">No selections yet</div>';
+                return;
+            }
+
+            selectionsByType[type].forEach(selection => {
+                const selectionElement = document.createElement('div');
+                selectionElement.className = 'meal-selection';
+                selectionElement.innerHTML = `
+                    <div class="user-name">${selection.userName} (${selection.userId})</div>
+                    <div class="meal-name">${selection.mealName}</div>
+                `;
+                container.appendChild(selectionElement);
+            });
+        });
+    });
 </script>
 
 <style>
@@ -320,5 +391,63 @@
         background: #f8f9fa;
         border-radius: 8px;
         color: #6c757d;
+    }
+
+    #mealSelections {
+        margin-top: 2rem;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .meal-times {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin-top: 1rem;
+    }
+
+    .meal-time {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .meal-time h3 {
+        color: #343a40;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .meal-time i {
+        color: #D4AF37;
+    }
+
+    .selections-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .meal-selection {
+        padding: 0.75rem;
+        background: #f8f9fa;
+        border-radius: 4px;
+        border-left: 3px solid #D4AF37;
+    }
+
+    .meal-selection .user-name {
+        font-weight: 500;
+        color: #343a40;
+        margin-bottom: 0.25rem;
+    }
+
+    .meal-selection .meal-name {
+        color: #6c757d;
+        font-size: 0.9rem;
     }
 </style> 

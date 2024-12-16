@@ -19,6 +19,7 @@ app.use(express.static('public'));
 const users = new Map();
 const validIds = new Set(['123', '456', '789']); // Example valid IDs - replace with your actual IDs
 const adminSockets = new Set(); // Track admin connections
+const mealSelections = new Map(); // Track meal selections by userId
 
 // Routes
 app.get('/', (req, res) => {
@@ -30,6 +31,47 @@ app.get('/user/:id', (req, res) => {
     if (validIds.has(userId)) {
         res.render('user', { 
             userId,
+            layout: 'main'
+        });
+    } else {
+        res.status(403).send('Invalid ID. Access denied.');
+    }
+});
+
+app.get('/user/:id/meals', (req, res) => {
+    const userId = req.params.id;
+    if (validIds.has(userId)) {
+        // Example meal data - in a real app, this would come from a database
+        const meals = {
+            breakfast: {
+                time: "7:30 AM - 9:00 AM",
+                options: [
+                    { id: "b1", name: "Continental Breakfast", description: "Fresh pastries, fruits, yogurt" },
+                    { id: "b2", name: "American Breakfast", description: "Eggs, bacon, toast, hash browns" },
+                    { id: "b3", name: "Healthy Start", description: "Oatmeal, berries, honey" }
+                ]
+            },
+            lunch: {
+                time: "12:00 PM - 1:30 PM",
+                options: [
+                    { id: "l1", name: "Grilled Chicken Salad", description: "Fresh greens, grilled chicken, vinaigrette" },
+                    { id: "l2", name: "Pasta Primavera", description: "Fresh vegetables, light cream sauce" },
+                    { id: "l3", name: "Fish of the Day", description: "Served with seasonal vegetables" }
+                ]
+            },
+            dinner: {
+                time: "6:00 PM - 7:30 PM",
+                options: [
+                    { id: "d1", name: "Roast Chicken", description: "Herb-roasted with vegetables" },
+                    { id: "d2", name: "Grilled Salmon", description: "With quinoa and asparagus" },
+                    { id: "d3", name: "Vegetable Stir-Fry", description: "With tofu and brown rice" }
+                ]
+            }
+        };
+        
+        res.render('meals', { 
+            userId,
+            meals,
             layout: 'main'
         });
     } else {
@@ -68,6 +110,13 @@ io.on('connection', (socket) => {
             name: data.name
         }));
         socket.emit('users_list', usersList);
+
+        // Send current meal selections to new admin
+        const mealsList = Array.from(mealSelections.entries()).map(([userId, selections]) => ({
+            userId,
+            ...selections
+        }));
+        socket.emit('meal_selections', mealsList);
         
         socket.on('disconnect', () => {
             console.log('Admin disconnected');
@@ -102,6 +151,11 @@ io.on('connection', (socket) => {
         userId: socket.userId
     });
 
+    // If user has previous meal selections, restore them
+    if (mealSelections.has(socket.userId)) {
+        socket.emit('restore_meal_selections', mealSelections.get(socket.userId));
+    }
+
     // Broadcast updated users list to all admins
     const usersList = Array.from(users.entries()).map(([id, data]) => ({
         id,
@@ -109,6 +163,26 @@ io.on('connection', (socket) => {
         name: data.name
     }));
     broadcastToAdmins('users_list', usersList);
+
+    // Handle meal selection
+    socket.on('meal_selected', ({ mealType, mealId, mealName }) => {
+        const user = users.get(socket.id);
+        if (!user) return;
+
+        // Update or create meal selections for this user
+        if (!mealSelections.has(user.userId)) {
+            mealSelections.set(user.userId, {});
+        }
+        const userSelections = mealSelections.get(user.userId);
+        userSelections[mealType] = { id: mealId, name: mealName };
+
+        // Broadcast updated meal selections to all admins
+        const mealsList = Array.from(mealSelections.entries()).map(([userId, selections]) => ({
+            userId,
+            ...selections
+        }));
+        broadcastToAdmins('meal_selections', mealsList);
+    });
 
     // Handle restore_username event
     socket.on('restore_username', ({ username }) => {

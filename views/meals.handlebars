@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meal Selection</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        .meal-section {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: rgba(17, 24, 39, 0.4);
+            backdrop-filter: blur(8px);
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .meal-time {
+            color: #D4AF37;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .serving-time {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-left: 1rem;
+        }
+
+        .meal-options {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .meal-option {
+            position: relative;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid transparent;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .meal-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .meal-option.selected {
+            border-color: #D4AF37;
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .meal-option.selected::after {
+            content: '\f00c';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            color: #D4AF37;
+        }
+
+        .meal-name {
+            color: white;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .meal-description {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
+
+        .notification {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            padding: 1rem 2rem;
+            background: #D4AF37;
+            color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transform: translateX(200%);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            text-decoration: none;
+            margin-bottom: 2rem;
+            transition: background 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-[#0A0F1E]">
+    <!-- Hidden element to store userId for client-side access -->
+    <span id="userId" style="display: none;">{{userId}}</span>
+
+    <div class="container mx-auto px-8 py-6">
+        <a href="/user/{{userId}}" class="back-button">
+            <i class="fas fa-arrow-left"></i>
+            Back to Dashboard
+        </a>
+
+        <div class="meal-section">
+            <div class="meal-time">
+                <i class="fas fa-sun"></i>
+                Breakfast
+                <span class="serving-time">{{meals.breakfast.time}}</span>
+            </div>
+            <div class="meal-options">
+                {{#each meals.breakfast.options}}
+                <div class="meal-option" data-meal-id="{{this.id}}" data-meal-type="breakfast">
+                    <div class="meal-name">{{this.name}}</div>
+                    <div class="meal-description">{{this.description}}</div>
+                </div>
+                {{/each}}
+            </div>
+
+            <div class="meal-time">
+                <i class="fas fa-cloud-sun"></i>
+                Lunch
+                <span class="serving-time">{{meals.lunch.time}}</span>
+            </div>
+            <div class="meal-options">
+                {{#each meals.lunch.options}}
+                <div class="meal-option" data-meal-id="{{this.id}}" data-meal-type="lunch">
+                    <div class="meal-name">{{this.name}}</div>
+                    <div class="meal-description">{{this.description}}</div>
+                </div>
+                {{/each}}
+            </div>
+
+            <div class="meal-time">
+                <i class="fas fa-moon"></i>
+                Dinner
+                <span class="serving-time">{{meals.dinner.time}}</span>
+            </div>
+            <div class="meal-options">
+                {{#each meals.dinner.options}}
+                <div class="meal-option" data-meal-id="{{this.id}}" data-meal-type="dinner">
+                    <div class="meal-name">{{this.name}}</div>
+                    <div class="meal-description">{{this.description}}</div>
+                </div>
+                {{/each}}
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">
+        Your meal selection has been saved
+    </div>
+
+    <script>
+        const socket = io({
+            auth: {
+                userId: document.getElementById('userId').textContent
+            }
+        });
+
+        const mealOptions = document.querySelectorAll('.meal-option');
+        const notification = document.getElementById('notification');
+        const selections = {
+            breakfast: null,
+            lunch: null,
+            dinner: null
+        };
+
+        // Load saved selections from localStorage
+        const savedSelections = localStorage.getItem('mealSelections');
+        if (savedSelections) {
+            Object.assign(selections, JSON.parse(savedSelections));
+            // Apply selected state to saved selections
+            for (const [mealType, mealId] of Object.entries(selections)) {
+                if (mealId) {
+                    const option = document.querySelector(`[data-meal-id="${mealId}"]`);
+                    if (option) option.classList.add('selected');
+                }
+            }
+        }
+
+        mealOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                const mealType = option.dataset.mealType;
+                const mealId = option.dataset.mealId;
+
+                // Remove selection from other options of the same meal type
+                document.querySelectorAll(`[data-meal-type="${mealType}"]`).forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+
+                // Add selection to clicked option
+                option.classList.add('selected');
+
+                // Update selections
+                selections[mealType] = mealId;
+                localStorage.setItem('mealSelections', JSON.stringify(selections));
+
+                // Emit selection to server
+                socket.emit('meal_selected', {
+                    mealType,
+                    mealId,
+                    mealName: option.querySelector('.meal-name').textContent
+                });
+
+                // Show notification
+                notification.classList.add('show');
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            });
+        });
+
+        // Restore username if saved
+        const savedUsername = localStorage.getItem('username');
+        if (savedUsername) {
+            socket.on('connect', () => {
+                socket.emit('restore_username', { username: savedUsername });
+            });
+        }
+    </script>
+</body>
+</html> 
