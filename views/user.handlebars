@@ -108,7 +108,7 @@
                             </svg>
                         </div>
                         <h3 class="text-2xl font-medium text-white mb-2 group-hover:text-white/90">Request Assistance</h3>
-                        <p class="text-white/60 group-hover:text-white/70">Request Assistance From Staff</p>
+                        <p id="alertStatus" class="text-white/60 group-hover:text-white/70">Request Assistance From Staff</p>
                     </div>
                     </button>
                     <a href="/user/{{userId}}/meals" class="group relative bg-[#111827]/40 backdrop-blur-md rounded-2xl p-8 border border-white/5 transition-all duration-300 hover:bg-[#1a2234]/40 flex flex-col items-center justify-center">
@@ -190,6 +190,9 @@
         </div>
         </div>
 
+        <div class="notification" id="notification">
+            Request has been sent to staff
+        </div>
 
 <script>
     const socket = io({
@@ -231,9 +234,34 @@
     alertButton.addEventListener('click', () => {
         socket.emit('alert_clicked');
         alertButton.disabled = true;
+        
+        // Set initial status
+        const alertStatus = document.getElementById('alertStatus');
+        alertStatus.textContent = 'Request has been sent (30s)';
+        
+        // Show notification
+        const notification = document.getElementById('notification');
+        notification.classList.add('show');
         setTimeout(() => {
-            alertButton.disabled = false;
-        }, 5000); // Re-enable after 5 seconds
+            notification.classList.remove('show');
+        }, 3000);
+        
+        // Start countdown
+        let timeLeft = 30;
+        const countdownInterval = setInterval(() => {
+            timeLeft--;
+            if (timeLeft <= 0) {
+                clearInterval(countdownInterval);
+                alertButton.disabled = false;
+                alertStatus.textContent = 'Request Assistance From Staff';
+                alertButton.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                alertStatus.textContent = `Request has been sent (${timeLeft}s)`;
+            }
+        }, 1000);
+
+        // Add disabled styling
+        alertButton.classList.add('opacity-50', 'cursor-not-allowed');
     });
 
     function broadcastToAdmins(event, data) {
@@ -262,3 +290,23 @@
     updateDateTime();
     setInterval(updateDateTime, 1000);
 </script> 
+
+<style>
+    .notification {
+        position: fixed;
+        top: 2rem;
+        right: 2rem;
+        padding: 1rem 2rem;
+        background: #D4AF37;
+        color: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transform: translateX(200%);
+        transition: transform 0.3s ease;
+        z-index: 50;
+    }
+
+    .notification.show {
+        transform: translateX(0);
+    }
+</style> 
