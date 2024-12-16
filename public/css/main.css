@@ -1213,6 +1213,10 @@
     --tw-ring-color: rgb(212 175 55 / var(--tw-ring-opacity));
   }
 
+  .text-white {
+    color: #fff !important;
+  }
+
   .focus\:ring-offset-2:focus {
     --tw-ring-offset-width: 2px;
   }

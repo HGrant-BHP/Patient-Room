@@ -1,76 +1,358 @@
-<div class="admin-section">
-    <h1>Admin Dashboard</h1>
-    
-    <div class="valid-ids">
-        <h2>Valid IDs</h2>
-        <ul>
-            {{#each validIds}}
-                <li>{{this}}</li>
-            {{/each}}
-        </ul>
-    </div>
-
-    <div class="user-list" id="userList">
-        <h2>Connected Users</h2>
-        <div id="connectedUsers">
-            <!-- Users will be populated here -->
-        </div>
-        <div id="debug" style="margin-top: 20px; padding: 10px; background: #f8f9fa; border-radius: 4px;">
-            <h3>Debug Info</h3>
-            <pre id="debugInfo">Waiting for connection...</pre>
-        </div>
-    </div>
-
-    <div id="alertLog">
-        <h2>Alert Log</h2>
-        <div id="alerts"></div>
-    </div>
-
-    <div id="mealSelections">
-        <h2>Meal Selections</h2>
-        <div class="meal-times">
-            <div class="meal-time">
-                <h3><i class="fas fa-sun"></i> Breakfast</h3>
-                <div id="breakfastSelections" class="selections-list"></div>
-            </div>
-            <div class="meal-time">
-                <h3><i class="fas fa-cloud-sun"></i> Lunch</h3>
-                <div id="lunchSelections" class="selections-list"></div>
-            </div>
-            <div class="meal-time">
-                <h3><i class="fas fa-moon"></i> Dinner</h3>
-                <div id="dinnerSelections" class="selections-list"></div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body class="bg-[#f8f9fa]">
+    <div class="admin-section">
+        <div class="dashboard-header">
+            <h1 class="text-white"><i class="fas fa-hospital-user"></i> Admin Dashboard</h1>
+            <div class="valid-ids">
+                <h2><i class="fas fa-key"></i> Valid IDs</h2>
+                <div class="id-tags">
+                    {{#each validIds}}
+                        <span class="id-tag">{{this}}</span>
+                    {{/each}}
+                </div>
             </div>
         </div>
+
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-users text-[#D4AF37]"></i> Connected Users</h2>
+                </div>
+                <div id="connectedUsers" class="card-content">
+                    <!-- Users will be populated here -->
+                </div>
+            </div>
+
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-bell text-[#D4AF37]"></i> Alert Log</h2>
+                </div>
+                <div id="alerts" class="card-content">
+                    <!-- Alerts will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-card meal-dashboard">
+            <div class="card-header">
+                <h2><i class="fas fa-utensils text-[#D4AF37]"></i> Meal Selections</h2>
+            </div>
+            <div class="meal-times">
+                <div class="meal-time-card">
+                    <h3><i class="fas fa-sun text-[#D4AF37]"></i> Breakfast</h3>
+                    <div id="breakfastSelections" class="selections-list"></div>
+                </div>
+                <div class="meal-time-card">
+                    <h3><i class="fas fa-cloud-sun text-[#D4AF37]"></i> Lunch</h3>
+                    <div id="lunchSelections" class="selections-list"></div>
+                </div>
+                <div class="meal-time-card">
+                    <h3><i class="fas fa-moon text-[#D4AF37]"></i> Dinner</h3>
+                    <div id="dinnerSelections" class="selections-list"></div>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
+
+<style>
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: #f8f9fa;
+        margin: 0;
+        padding: 0;
+        color: #1a1a1a;
+    }
+
+    .admin-section {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .dashboard-header {
+        margin-bottom: 2rem;
+    }
+
+    .dashboard-header h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .valid-ids {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .valid-ids h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .id-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .id-tag {
+        background: #D4AF37;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+    }
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .dashboard-card {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+    .card-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #f1f1f1;
+    }
+
+    .card-header h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .card-content {
+        padding: 1.5rem;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .meal-dashboard {
+        margin-top: 1.5rem;
+    }
+
+    .meal-times {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        padding: 1.5rem;
+    }
+
+    .meal-time-card {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+    }
+
+    .meal-time-card h3 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .selections-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .meal-selection {
+        background: white;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        border-left: 3px solid #D4AF37;
+    }
+
+    .meal-selection .user-name {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+
+    .meal-selection .meal-name {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .user-item {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .user-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .name-section {
+        flex: 1;
+    }
+
+    .name-display {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .user-name {
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .user-id {
+        font-size: 0.9rem;
+        color: #666;
+        background: #f1f1f1;
+        padding: 0.25rem 0.75rem;
+        border-radius: 0.5rem;
+    }
+
+    .name-edit {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .name-edit input {
+        flex: 1;
+        padding: 0.5rem;
+        border: 1px solid #e1e1e1;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+    }
+
+    .save-btn, .edit-btn, .cancel-btn {
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: background 0.2s;
+        font-size: 0.9rem;
+    }
+
+    .save-btn {
+        background: #D4AF37;
+    }
+
+    .edit-btn {
+        background: #6c757d;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .cancel-btn {
+        background: #dc3545;
+    }
+
+    .save-btn:hover, .edit-btn:hover, .cancel-btn:hover {
+        opacity: 0.9;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .alert {
+        background: #fff3cd;
+        border-left: 3px solid #D4AF37;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .alert-popup {
+        position: fixed;
+        top: 2rem;
+        right: 2rem;
+        background: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #D4AF37;
+        border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #b08d2a;
+    }
+</style>
 
 <script>
     const socket = io();
     const connectedUsers = document.getElementById('connectedUsers');
     const alertsDiv = document.getElementById('alerts');
-    const debugInfo = document.getElementById('debugInfo');
     let usersData = new Map();
-
-    function updateDebugInfo(message) {
-        const timestamp = new Date().toLocaleTimeString();
-        debugInfo.textContent += `\n[${timestamp}] ${message}`;
-        debugInfo.scrollTop = debugInfo.scrollHeight;
-    }
 
     // Socket connection status
     socket.on('connect', () => {
-        updateDebugInfo('Connected to server');
+        console.log('Connected to server');
     });
 
     socket.on('disconnect', () => {
-        updateDebugInfo('Disconnected from server');
-        connectedUsers.innerHTML = '<p>Disconnected from server...</p>';
+        console.log('Disconnected from server');
+        connectedUsers.innerHTML = '<p class="no-users">Disconnected from server...</p>';
     });
 
     // Handle users list update
     socket.on('users_list', (users) => {
-        updateDebugInfo(`Received users list: ${users.length} users`);
         console.log('Received users:', users);
         // Update users data map
         users.forEach(user => {
@@ -135,14 +417,13 @@
 
     // Handle meal selections update
     socket.on('meal_selections', (selections) => {
-        updateDebugInfo(`Received meal selections update`);
+        console.log('Received meal selections update');
         currentMealSelections = selections;
         updateMealSelectionsDisplay();
     });
 
     // Handle user alerts
     socket.on('user_alert', ({ socketId, userId, username }) => {
-        updateDebugInfo(`Alert received from ${username} (${userId})`);
         console.log('Alert received:', { socketId, userId, username });
         
         // Create popup
@@ -173,7 +454,7 @@
 
     // Handle user disconnection
     socket.on('user_disconnected', (socketId) => {
-        updateDebugInfo(`User disconnected: ${socketId}`);
+        console.log('User disconnected:', socketId);
         const userElement = document.getElementById(`user-${socketId}`);
         if (userElement) {
             userElement.remove();
@@ -190,25 +471,28 @@
             <div class="user-item" id="user-${user.id}">
                 <div class="user-info">
                     <div class="name-section">
-                        <div class="name-display ${user.name === 'Guest' ? 'hidden' : ''}" id="name-display-${user.id}">
+                        <div class="name-display" id="name-display-${user.id}">
                             <span class="user-name">${user.name}</span>
+                            <span class="user-id">ID: ${user.userId}</span>
                             <button class="edit-btn" onclick="toggleEdit('${user.id}')">
                                 <i class="fas fa-edit"></i>
                             </button>
                         </div>
-                        <div class="name-edit ${user.name === 'Guest' ? '' : 'hidden'}" id="name-edit-${user.id}">
+                        <div class="name-edit hidden" id="name-edit-${user.id}">
                             <input 
                                 type="text" 
                                 placeholder="Enter name" 
-                                value="${user.name === 'Guest' ? '' : user.name}"
+                                value="${user.name}"
                                 onkeypress="if(event.key === 'Enter') saveUsername('${user.id}', this.value)"
                             >
                             <button class="save-btn" onclick="saveUsername('${user.id}', this.previousElementSibling.value)">
                                 Save
                             </button>
+                            <button class="cancel-btn" onclick="toggleEdit('${user.id}')">
+                                Cancel
+                            </button>
                         </div>
                     </div>
-                    <span class="user-id">ID: ${user.userId}</span>
                 </div>
             </div>
         `).join('');
@@ -221,9 +505,11 @@
         const editDiv = document.getElementById(`name-edit-${socketId}`);
         displayDiv.classList.toggle('hidden');
         editDiv.classList.toggle('hidden');
-        const input = editDiv.querySelector('input');
-        input.value = displayDiv.querySelector('.user-name').textContent;
-        input.focus();
+        if (!editDiv.classList.contains('hidden')) {
+            const input = editDiv.querySelector('input');
+            input.value = displayDiv.querySelector('.user-name').textContent;
+            input.focus();
+        }
     }
 
     function saveUsername(socketId, username) {
@@ -237,230 +523,5 @@
         }
     }
 </script>
-
-<style>
-    .admin-section {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 20px;
-    }
-
-    .alert {
-        padding: 10px;
-        margin: 5px 0;
-        background-color: #fff3cd;
-        border: 1px solid #ffeeba;
-        border-radius: 4px;
-    }
-    
-    .user-item {
-        margin: 10px 0;
-        padding: 15px;
-        background-color: #f8f9fa;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-
-    .user-info {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .name-section {
-        flex: 1;
-        margin-right: 20px;
-    }
-
-    .user-id {
-        color: #666;
-        font-size: 0.9em;
-        background-color: #e9ecef;
-        padding: 4px 8px;
-        border-radius: 4px;
-    }
-    
-    .name-edit input {
-        padding: 8px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        margin-right: 10px;
-        width: 200px;
-    }
-    
-    .save-btn, .edit-btn {
-        background-color: #28a745;
-        color: white;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-    
-    .edit-btn {
-        background-color: #6c757d;
-        padding: 4px 8px;
-        margin-left: 10px;
-    }
-    
-    .save-btn:hover {
-        background-color: #218838;
-    }
-    
-    .edit-btn:hover {
-        background-color: #5a6268;
-    }
-
-    .valid-ids {
-        margin-bottom: 20px;
-        padding: 15px;
-        background-color: #e9ecef;
-        border-radius: 8px;
-    }
-
-    .valid-ids ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-
-    .valid-ids li {
-        display: inline-block;
-        margin: 5px;
-        padding: 5px 10px;
-        background-color: #007bff;
-        color: white;
-        border-radius: 4px;
-    }
-
-    .hidden {
-        display: none;
-    }
-
-    .name-display {
-        display: flex;
-        align-items: center;
-    }
-
-    .user-name {
-        font-size: 1.1em;
-        font-weight: 500;
-    }
-
-    .alert-popup {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        z-index: 1000;
-        animation: slideIn 0.3s ease-out;
-    }
-
-    .popup-content {
-        text-align: center;
-    }
-
-    .popup-content h3 {
-        margin-top: 0;
-        color: #dc3545;
-    }
-
-    .popup-content button {
-        background-color: #6c757d;
-        color: white;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 4px;
-        cursor: pointer;
-        margin-top: 10px;
-    }
-
-    @keyframes slideIn {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-
-    #connectedUsers {
-        margin-top: 15px;
-    }
-
-    h2 {
-        color: #343a40;
-        margin-bottom: 15px;
-    }
-
-    .no-users {
-        text-align: center;
-        padding: 20px;
-        background: #f8f9fa;
-        border-radius: 8px;
-        color: #6c757d;
-    }
-
-    #mealSelections {
-        margin-top: 2rem;
-        padding: 1.5rem;
-        background: #f8f9fa;
-        border-radius: 8px;
-    }
-
-    .meal-times {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 1.5rem;
-        margin-top: 1rem;
-    }
-
-    .meal-time {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-
-    .meal-time h3 {
-        color: #343a40;
-        font-size: 1.2rem;
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .meal-time i {
-        color: #D4AF37;
-    }
-
-    .selections-list {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-
-    .meal-selection {
-        padding: 0.75rem;
-        background: #f8f9fa;
-        border-radius: 4px;
-        border-left: 3px solid #D4AF37;
-    }
-
-    .meal-selection .user-name {
-        font-weight: 500;
-        color: #343a40;
-        margin-bottom: 0.25rem;
-    }
-
-    .meal-selection .meal-name {
-        color: #6c757d;
-        font-size: 0.9rem;
-    }
-</style> 
+</body>
+</html> 
