@@ -59,6 +59,15 @@
                 </div>
             </div>
         </div>
+
+        <div class="dashboard-card mt-6">
+            <div class="card-header">
+                <h2><i class="fas fa-clipboard-list text-[#D4AF37]"></i> Survey Responses</h2>
+            </div>
+            <div id="surveyResponses" class="card-content">
+                <!-- Survey responses will be populated here -->
+            </div>
+        </div>
     </div>
 
 <style>
@@ -366,6 +375,98 @@
     .resolve-btn:hover {
         opacity: 0.9;
     }
+
+    .survey-response {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+        margin-bottom: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .survey-response:hover {
+        background: #f1f1f1;
+    }
+
+    .survey-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .survey-user {
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .survey-timestamp {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .survey-answers {
+        display: none;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e5e5e5;
+    }
+
+    .survey-response.expanded .survey-answers {
+        display: block;
+    }
+
+    .survey-answer {
+        background: white;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .survey-answer:last-child {
+        margin-bottom: 0;
+    }
+
+    .survey-question {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: #374151;
+    }
+
+    .survey-value {
+        color: #666;
+    }
+
+    .survey-toggle {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .survey-toggle i {
+        transition: transform 0.3s ease;
+    }
+
+    .survey-response.expanded .survey-toggle i {
+        transform: rotate(180deg);
+    }
+
+    .request-survey-btn {
+        padding: 0.25rem 0.75rem;
+        background: #D4AF37;
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: background 0.2s;
+        font-size: 0.9rem;
+    }
+
+    .request-survey-btn:hover {
+        opacity: 0.9;
+    }
 </style>
 
 <script>
@@ -474,24 +575,17 @@
                             <button class="edit-btn" onclick="toggleEdit('${user.id}')">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            ${activeAlerts.has(user.id) ? `
-                                <button class="resolve-btn" onclick="resolveAlert('${user.id}', '${user.userId}', '${user.name}')">
-                                    Resolved
-                                </button>
-                            ` : ''}
+                            <button class="request-survey-btn" onclick="requestSurvey('${user.userId}')">
+                                <i class="fas fa-clipboard-list"></i> Request Survey
+                            </button>
                         </div>
                         <div class="name-edit hidden" id="name-edit-${user.id}">
-                            <input 
-                                type="text" 
-                                placeholder="Enter name" 
-                                value="${user.name}"
-                                onkeypress="if(event.key === 'Enter') saveUsername('${user.id}', this.value)"
-                            >
+                            <input type="text" class="name-input" value="${user.name}">
                             <button class="save-btn" onclick="saveUsername('${user.id}', this.previousElementSibling.value)">
-                                Save
+                                <i class="fas fa-check"></i>
                             </button>
                             <button class="cancel-btn" onclick="toggleEdit('${user.id}')">
-                                Cancel
+                                <i class="fas fa-times"></i>
                             </button>
                         </div>
                     </div>
@@ -605,6 +699,82 @@
             displayDiv.classList.remove('hidden');
             editDiv.classList.add('hidden');
         }
+    }
+
+    // Store survey responses
+    let surveyResponses = new Map();
+
+    // Handle survey responses update
+    socket.on('survey_responses', (responses) => {
+        console.log('Received survey responses:', responses);
+        responses.forEach(response => {
+            surveyResponses.set(response.userId, response.responses);
+        });
+        updateSurveyResponsesDisplay();
+    });
+
+    // Store survey questions
+    let surveyQuestions = null;
+
+    // Fetch survey questions when page loads
+    async function loadSurveyQuestions() {
+        try {
+            const response = await fetch('/data/survey_questions.json');
+            const data = await response.json();
+            surveyQuestions = data.questions;
+        } catch (error) {
+            console.error('Error loading survey questions:', error);
+        }
+    }
+
+    // Load questions when page loads
+    loadSurveyQuestions();
+
+    function updateSurveyResponsesDisplay() {
+        const container = document.getElementById('surveyResponses');
+        if (surveyResponses.size === 0) {
+            container.innerHTML = '<p class="no-responses">No survey responses yet</p>';
+            return;
+        }
+
+        const responsesHtml = Array.from(surveyResponses.entries()).map(([userId, answers]) => {
+            const userData = usersData.get(userId) || { name: 'Unknown User', userId };
+            return `
+                <div class="survey-response" onclick="toggleSurvey(this)">
+                    <div class="survey-header">
+                        <div class="survey-user">
+                            <i class="fas fa-user text-[#D4AF37]"></i>
+                            ${userData.name} (${userId})
+                        </div>
+                        <div class="survey-toggle">
+                            <span class="survey-timestamp">${new Date().toLocaleDateString()}</span>
+                            <i class="fas fa-chevron-down text-[#D4AF37]"></i>
+                        </div>
+                    </div>
+                    <div class="survey-answers">
+                        ${answers.map(answer => {
+                            const question = surveyQuestions?.find(q => q.id === parseInt(answer.questionId));
+                            return `
+                                <div class="survey-answer">
+                                    <div class="survey-question">${question ? question.question : `Question ${answer.questionId}`}</div>
+                                    <div class="survey-value">${answer.value}</div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        container.innerHTML = responsesHtml;
+    }
+
+    function toggleSurvey(element) {
+        element.classList.toggle('expanded');
+    }
+
+    function requestSurvey(userId) {
+        socket.emit('request_survey', { userId });
     }
 </script>
 </body>

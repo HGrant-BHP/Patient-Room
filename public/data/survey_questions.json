@@ -1,0 +1,28 @@
+{
+  "questions": [
+    {
+      "id": 1,
+      "question": "How would you rate your overall experience with our service?",
+      "type": "rating",
+      "options": ["1", "2", "3", "4", "5"]
+    },
+    {
+      "id": 2,
+      "question": "How satisfied are you with the staff responsiveness?",
+      "type": "rating",
+      "options": ["1", "2", "3", "4", "5"]
+    },
+    {
+      "id": 3,
+      "question": "How would you rate the quality of meals provided?",
+      "type": "rating",
+      "options": ["1", "2", "3", "4", "5"]
+    },
+    {
+      "id": 4,
+      "question": "Do you have any suggestions for improvement?",
+      "type": "text",
+      "placeholder": "Your feedback helps us improve"
+    }
+  ]
+} 

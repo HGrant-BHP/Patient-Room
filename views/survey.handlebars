@@ -1,0 +1,57 @@
+<!-- Hidden element to store userId for client-side access -->
+<span id="userId" style="display: none;">{{userId}}</span>
+
+<div class="min-h-screen bg-[#0A0F1E] relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-br from-[#0A0F1E] via-transparent to-[#1A1F2E] opacity-80"></div>
+    <div class="relative z-10">
+        <div class="container mx-auto px-8 py-6">
+            <a href="/user/{{userId}}" class="back-button">
+                <i class="fas fa-arrow-left"></i>
+                <span class="back-text">Back to Dashboard</span>
+            </a>
+
+            <div class="survey-container bg-[#111827]/40 backdrop-blur-md rounded-2xl p-8 border border-white/5">
+                <div id="surveyContent">
+                    <h1 class="text-2xl font-medium text-white mb-6">Patient Satisfaction Survey</h1>
+                    <form id="surveyForm" class="space-y-8">
+                        <div id="surveyQuestions" class="space-y-8">
+                            <!-- Questions will be populated here -->
+                        </div>
+                        <div class="flex justify-end space-x-4 mt-12 pt-6 border-t border-white/10">
+                            <button type="button" id="cancelSurvey" class="px-6 py-3 bg-[#374151] text-white rounded-lg hover:bg-[#4B5563] transition-colors">Cancel</button>
+                            <button type="submit" class="px-6 py-3 bg-[#D4AF37] text-white rounded-lg hover:bg-[#B59030] transition-colors">Submit</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .back-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        text-decoration: none;
+        margin-bottom: 2rem;
+        transition: background 0.3s ease;
+    }
+
+    .back-button:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .survey-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+</style>
+
+<script src="/js/survey.js"></script> 

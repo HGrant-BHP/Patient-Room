@@ -20,6 +20,9 @@ const users = new Map();
 const validIds = new Set(['123', '456', '789']); // Example valid IDs - replace with your actual IDs
 const adminSockets = new Set(); // Track admin connections
 const mealSelections = new Map(); // Track meal selections by userId
+const surveyResponses = new Map();
+const pendingSurveys = new Map();
+const declinedSurveys = new Map(); // Track declined surveys
 
 // Routes
 app.get('/', (req, res) => {
@@ -98,6 +101,18 @@ app.get('/admin', (req, res) => {
     });
 });
 
+app.get('/user/:id/survey', (req, res) => {
+    const userId = req.params.id;
+    if (validIds.has(userId)) {
+        res.render('survey', { 
+            userId,
+            layout: 'main'
+        });
+    } else {
+        res.status(403).send('Invalid ID. Access denied.');
+    }
+});
+
 // Socket.IO connection handling
 io.use((socket, next) => {
     const userId = socket.handshake.auth.userId;
@@ -129,6 +144,13 @@ io.on('connection', (socket) => {
             ...selections
         }));
         socket.emit('meal_selections', mealsList);
+
+        // Send current survey responses to new admin
+        const surveyList = Array.from(surveyResponses.entries()).map(([userId, responses]) => ({
+            userId,
+            responses
+        }));
+        socket.emit('survey_responses', surveyList);
         
         socket.on('disconnect', () => {
             console.log('Admin disconnected');
@@ -150,6 +172,25 @@ io.on('connection', (socket) => {
                 broadcastToAdmins('users_list', updatedUsersList);
             }
         });
+
+        // Handle admin requesting survey from user
+        socket.on('request_survey', ({ userId }) => {
+            // Find the socket ID for this user
+            let userSocketId = null;
+            for (const [socketId, userData] of users.entries()) {
+                if (userData.userId === userId) {
+                    userSocketId = socketId;
+                    break;
+                }
+            }
+
+            if (userSocketId) {
+                // Clear any previous declined state when admin requests a new survey
+                declinedSurveys.delete(userId);
+                pendingSurveys.set(userId, true);
+                io.to(userSocketId).emit('survey_requested');
+            }
+        });
         
         return;
     }
@@ -162,6 +203,11 @@ io.on('connection', (socket) => {
         name: 'Guest',
         userId: socket.userId
     });
+
+    // Check if there's a pending survey for this user and they haven't declined it
+    if (pendingSurveys.has(socket.userId) && !declinedSurveys.has(socket.userId)) {
+        socket.emit('survey_requested');
+    }
 
     // If user has previous meal selections, restore them
     if (mealSelections.has(socket.userId)) {
@@ -219,6 +265,31 @@ io.on('connection', (socket) => {
             userId: socket.userId,
             username: user.name
         });
+    });
+
+    // Handle survey submission
+    socket.on('survey_submitted', ({ userId, answers }) => {
+        // Store survey responses
+        surveyResponses.set(userId, answers);
+        
+        // Remove from pending surveys
+        pendingSurveys.delete(userId);
+
+        // Broadcast to admins
+        const surveyList = Array.from(surveyResponses.entries()).map(([userId, responses]) => ({
+            userId,
+            responses
+        }));
+        broadcastToAdmins('survey_responses', surveyList);
+    });
+
+    // Handle survey declined
+    socket.on('survey_declined', () => {
+        const userId = socket.userId;
+        if (userId) {
+            declinedSurveys.set(userId, true);
+            pendingSurveys.delete(userId);
+        }
     });
 
     // Handle disconnection
