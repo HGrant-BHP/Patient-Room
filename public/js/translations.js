@@ -16,8 +16,8 @@ const translations = {
         chatDesc: 'Chat With Staff',
         entertainment: 'Entertainment',
         entertainmentDesc: 'Premium Content',
-        roomControls: 'Room Controls',
-        roomControlsDesc: 'Customize Your Space',
+        infoLibrary: 'Knowledge Hub',
+        infoLibraryDesc: 'Explore Guides And Resources',
         personalizeSettings: 'Personalize Settings',
         welcome: 'Welcome,',
 
@@ -44,8 +44,8 @@ const translations = {
         chatDesc: 'Chat con el Personal',
         entertainment: 'Entretenimiento',
         entertainmentDesc: 'Contenido Premium',
-        roomControls: 'Control de Habitación',
-        roomControlsDesc: 'Personalizar tu Espacio',
+        infoLibrary: 'Centro de Conocimiento',
+        infoLibraryDesc: 'Explora Guías y Recursos',
         personalizeSettings: 'Personalizar Configuración',
         welcome: 'Bienvenido,',
 

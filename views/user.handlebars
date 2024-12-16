@@ -63,6 +63,22 @@
                                 </h2>
                             </div>
                         </div>
+                        <div class="flex flex-col items-end">
+                            <div class="flex items-center space-x-3 mb-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-clock w-5 h-5 text-[#D4AF37]">
+                                    <path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-1.5"></path>
+                                    <path d="M16 2v4"></path>
+                                    <path d="M8 2v4"></path>
+                                    <path d="M3 10h18"></path>
+                                    <circle cx="18" cy="18" r="4"></circle>
+                                    <path d="M18 16.5v1.5h1.5"></path>
+                                </svg>
+                                <span class="text-[#D4AF37] text-sm font-medium uppercase tracking-wider" data-i18n="comingUp">Coming Up</span>
+                            </div>
+                            <div id="upcomingEvent" class="text-white text-lg font-light">
+                                Surgery at 10:00 PM
+                            </div>
+                        </div>
                     </div>
                     </div>
                 </div>
@@ -122,22 +138,18 @@
                     <button class="group relative bg-[#111827]/40 backdrop-blur-md rounded-2xl p-8 border border-white/5 transition-all duration-300 hover:bg-[#1a2234]/40">
                     <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     <div class="relative flex flex-col items-center">
-                        <div class="inline-flex p-4 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 shadow-lg mb-6 group-hover:scale-110 transition-transform duration-300">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sliders w-8 h-8 text-white">
-                                <line x1="4" x2="4" y1="21" y2="14"></line>
-                                <line x1="4" x2="4" y1="10" y2="3"></line>
-                                <line x1="12" x2="12" y1="21" y2="12"></line>
-                                <line x1="12" x2="12" y1="8" y2="3"></line>
-                                <line x1="20" x2="20" y1="21" y2="16"></line>
-                                <line x1="20" x2="20" y1="12" y2="3"></line>
-                                <line x1="2" x2="6" y1="14" y2="14"></line>
-                                <line x1="10" x2="14" y1="8" y2="8"></line>
-                                <line x1="18" x2="22" y1="16" y2="16"></line>
-                            </svg>
-                        </div>
-                        <h3 class="text-2xl font-medium text-white mb-2 group-hover:text-white/90" data-i18n="roomControls">Room Controls</h3>
-                        <p class="text-white/60 group-hover:text-white/70" data-i18n="roomControlsDesc">Customize Your Space</p>
-                    </div>
+    <div class="inline-flex p-4 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 shadow-lg mb-6 group-hover:scale-110 transition-transform duration-300">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book w-8 h-8 text-white">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M20 2H6.5A2.5 2.5 0 0 0 4 4.5v15"></path>
+            <path d="M20 2v15a2.5 2.5 0 0 1-2.5 2.5H4"></path>
+            <path d="M8 2v19"></path>
+        </svg>
+    </div>
+    <h3 class="text-2xl font-medium text-white mb-2 group-hover:text-white/90" data-i18n="infoLibrary">Knowledge Hub</h3>
+    <p class="text-white/60 group-hover:text-white/70" data-i18n="infoLibraryDesc">Explore Guides And Resources</p>
+</div>
+
                     </button>
                     <a href="/user/{{userId}}/settings" class="group relative bg-[#111827]/40 backdrop-blur-md rounded-2xl p-8 border border-white/5 transition-all duration-300 hover:bg-[#1a2234]/40">
                     <div class="absolute inset-0 bg-gradient-to-br from-violet-500/20 to-purple-500/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -173,6 +185,62 @@
 
     const usernameSpan = document.getElementById('username');
     const alertButton = document.getElementById('alertButton');
+    
+    // Store alert button state in localStorage
+    const ALERT_STATE_KEY = 'alertButtonState';
+    const ALERT_TIMEOUT_KEY = 'alertTimeout';
+
+    // Function to disable alert button
+    function disableAlertButton(timeLeft) {
+        alertButton.disabled = true;
+        const alertStatus = document.getElementById('alertStatus');
+        alertStatus.textContent = `Request has been sent (${timeLeft}s)`;
+        alertButton.classList.add('opacity-50', 'cursor-not-allowed');
+        
+        // Store state in localStorage
+        localStorage.setItem(ALERT_STATE_KEY, 'disabled');
+        localStorage.setItem(ALERT_TIMEOUT_KEY, (Date.now() + (timeLeft * 1000)).toString());
+    }
+
+    // Function to enable alert button
+    function enableAlertButton() {
+        alertButton.disabled = false;
+        const alertStatus = document.getElementById('alertStatus');
+        alertStatus.textContent = 'Request Assistance From Staff';
+        alertButton.classList.remove('opacity-50', 'cursor-not-allowed');
+        
+        // Clear state from localStorage
+        localStorage.removeItem(ALERT_STATE_KEY);
+        localStorage.removeItem(ALERT_TIMEOUT_KEY);
+    }
+
+    // Check alert button state on page load
+    window.addEventListener('load', () => {
+        const buttonState = localStorage.getItem(ALERT_STATE_KEY);
+        const timeoutEnd = parseInt(localStorage.getItem(ALERT_TIMEOUT_KEY));
+        
+        if (buttonState === 'disabled' && timeoutEnd) {
+            const timeLeft = Math.ceil((timeoutEnd - Date.now()) / 1000);
+            
+            if (timeLeft > 0) {
+                disableAlertButton(timeLeft);
+                
+                // Start countdown
+                const countdownInterval = setInterval(() => {
+                    const newTimeLeft = Math.ceil((timeoutEnd - Date.now()) / 1000);
+                    if (newTimeLeft <= 0) {
+                        clearInterval(countdownInterval);
+                        enableAlertButton();
+                    } else {
+                        const alertStatus = document.getElementById('alertStatus');
+                        alertStatus.textContent = `Request has been sent (${newTimeLeft}s)`;
+                    }
+                }, 1000);
+            } else {
+                enableAlertButton();
+            }
+        }
+    });
 
     // Load saved username from localStorage on page load
     const savedUsername = localStorage.getItem('username');
@@ -203,11 +271,6 @@
     // Handle alert button click
     alertButton.addEventListener('click', () => {
         socket.emit('alert_clicked');
-        alertButton.disabled = true;
-        
-        // Set initial status
-        const alertStatus = document.getElementById('alertStatus');
-        alertStatus.textContent = 'Request has been sent (30s)';
         
         // Show notification
         const notification = document.getElementById('notification');
@@ -216,22 +279,21 @@
             notification.classList.remove('show');
         }, 3000);
         
+        // Disable button with 30 second countdown
+        disableAlertButton(30);
+        
         // Start countdown
-        let timeLeft = 30;
+        const timeoutEnd = Date.now() + (30 * 1000);
         const countdownInterval = setInterval(() => {
-            timeLeft--;
+            const timeLeft = Math.ceil((timeoutEnd - Date.now()) / 1000);
             if (timeLeft <= 0) {
                 clearInterval(countdownInterval);
-                alertButton.disabled = false;
-                alertStatus.textContent = 'Request Assistance From Staff';
-                alertButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                enableAlertButton();
             } else {
+                const alertStatus = document.getElementById('alertStatus');
                 alertStatus.textContent = `Request has been sent (${timeLeft}s)`;
             }
         }, 1000);
-
-        // Add disabled styling
-        alertButton.classList.add('opacity-50', 'cursor-not-allowed');
     });
 
     function broadcastToAdmins(event, data) {
