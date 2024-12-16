@@ -128,13 +128,13 @@
     <div class="container mx-auto px-8 py-6">
         <a href="/user/{{userId}}" class="back-button">
             <i class="fas fa-arrow-left"></i>
-            Back to Dashboard
+            <span class="back-text" data-i18n="backToDashboard">Back to Dashboard</span>
         </a>
 
         <div class="meal-section">
             <div class="meal-time">
                 <i class="fas fa-sun"></i>
-                Breakfast
+                <span data-i18n="breakfast">Breakfast</span>
                 <span class="serving-time">{{meals.breakfast.time}}</span>
             </div>
             <div class="meal-options">
@@ -148,7 +148,7 @@
 
             <div class="meal-time">
                 <i class="fas fa-cloud-sun"></i>
-                Lunch
+                <span data-i18n="lunch">Lunch</span>
                 <span class="serving-time">{{meals.lunch.time}}</span>
             </div>
             <div class="meal-options">
@@ -162,7 +162,7 @@
 
             <div class="meal-time">
                 <i class="fas fa-moon"></i>
-                Dinner
+                <span data-i18n="dinner">Dinner</span>
                 <span class="serving-time">{{meals.dinner.time}}</span>
             </div>
             <div class="meal-options">
@@ -176,10 +176,11 @@
         </div>
     </div>
 
-    <div class="notification" id="notification">
+    <div class="notification" id="notification" data-i18n="mealSelectionSaved">
         Your meal selection has been saved
     </div>
 
+    <script src="/js/translations.js"></script>
     <script>
         const socket = io({
             auth: {

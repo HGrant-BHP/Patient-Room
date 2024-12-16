@@ -1,0 +1,199 @@
+<!-- Hidden element to store userId for client-side access -->
+<span id="userId" style="display: none;">{{userId}}</span>
+
+{{!< main}}
+
+<div class="min-h-screen bg-[#0A0F1E] relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-br from-[#0A0F1E] via-transparent to-[#1A1F2E] opacity-80"></div>
+    <div class="relative z-10">
+        <div class="settings-container">
+            <a href="/user/{{userId}}" class="back-button">
+                <i class="fas fa-arrow-left"></i>
+                <span class="back-text" data-i18n="backToDashboard">Back to Dashboard</span>
+            </a>
+
+            <div class="settings-card">
+                <div class="card-header">
+                    <h1><i class="fas fa-cog text-[#D4AF37]"></i> <span data-i18n="settings">Settings</span></h1>
+                </div>
+                
+                <div class="settings-content">
+                    <div class="setting-group">
+                        <h2><i class="fas fa-language text-[#D4AF37]"></i> <span data-i18n="languageSettings">Language Settings</span></h2>
+                        <div class="language-options">
+                            <button class="language-btn" data-lang="en">
+                                <img src="https://flagcdn.com/w40/us.png" alt="English" width="30">
+                                English
+                            </button>
+                            <button class="language-btn" data-lang="es">
+                                <img src="https://flagcdn.com/w40/es.png" alt="Spanish" width="30">
+                                Español
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification" data-i18n="settingsSaved">
+        Settings saved successfully
+    </div>
+</div>
+
+<style>
+    .settings-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .back-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        text-decoration: none;
+        margin-bottom: 2rem;
+        transition: background 0.3s ease;
+    }
+
+    .back-button:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .settings-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 1rem;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .card-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .card-header h1 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: white;
+    }
+
+    .settings-content {
+        padding: 1.5rem;
+    }
+
+    .setting-group {
+        margin-bottom: 2rem;
+    }
+
+    .setting-group h2 {
+        font-size: 1.25rem;
+        font-weight: 500;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: white;
+    }
+
+    .language-options {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .language-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1.5rem;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 0.5rem;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .language-btn:hover {
+        background: rgba(255, 255, 255, 0.15);
+    }
+
+    .language-btn.active {
+        background: #D4AF37;
+        border-color: #D4AF37;
+    }
+
+    .notification {
+        position: fixed;
+        top: 2rem;
+        right: 2rem;
+        padding: 1rem 2rem;
+        background: #D4AF37;
+        color: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transform: translateX(200%);
+        transition: transform 0.3s ease;
+    }
+
+    .notification.show {
+        transform: translateX(0);
+    }
+</style>
+
+<script>
+    const socket = io({
+        auth: {
+            userId: document.getElementById('userId').textContent
+        }
+    });
+
+    // Language buttons
+    const languageButtons = document.querySelectorAll('.language-btn');
+    const notification = document.getElementById('notification');
+
+    // Load saved language
+    const savedLanguage = localStorage.getItem('language') || 'en';
+    updateActiveLanguage(savedLanguage);
+
+    // Language button click handlers
+    languageButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const lang = button.dataset.lang;
+            localStorage.setItem('language', lang);
+            updateActiveLanguage(lang);
+            
+            // Show notification
+            updatePageContent(lang);
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+
+            // Emit language change event
+            socket.emit('language_changed', { language: lang });
+        });
+    });
+
+    function updateActiveLanguage(lang) {
+        languageButtons.forEach(button => {
+            button.classList.toggle('active', button.dataset.lang === lang);
+        });
+    }
+
+    // Initialize with saved language
+    updatePageContent(savedLanguage);
+</script> 

@@ -32,7 +32,7 @@
                             <path d="M4 13H2"></path>
                             <path d="M6.34 7.34 4.93 5.93"></path>
                         </svg>
-                        <span class="text-white/60 text-sm">Temperature:</span><span class="text-white text-sm font-medium">23°C</span>
+                        <span class="text-white/60 text-sm" data-i18n="temperature">Temperature:</span><span class="text-white text-sm font-medium">23°C</span>
                     </div>
                     <div class="flex items-center space-x-3">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sun w-4 h-4 text-[#D4AF37]">
@@ -46,7 +46,7 @@
                             <path d="m6.34 17.66-1.41 1.41"></path>
                             <path d="m19.07 4.93-1.41 1.41"></path>
                         </svg>
-                        <span class="text-white/60 text-sm">Lighting:</span><span class="text-white text-sm font-medium">70%</span>
+                        <span class="text-white/60 text-sm" data-i18n="lighting">Lighting:</span><span class="text-white text-sm font-medium">70%</span>
                     </div>
                     <div class="flex items-center space-x-3">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-volume2 w-4 h-4 text-[#D4AF37]">
@@ -54,7 +54,7 @@
                             <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
                             <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
                         </svg>
-                        <span class="text-white/60 text-sm">Volume:</span><span class="text-white text-sm font-medium">40%</span>
+                        <span class="text-white/60 text-sm" data-i18n="volume">Volume:</span><span class="text-white text-sm font-medium">40%</span>
                     </div>
                     </div>
                 </div>
@@ -73,7 +73,9 @@
                                 <div class="w-1.5 h-1.5 rounded-full bg-[#D4AF37] animate-pulse"></div>
                                 <span class="text-[#D4AF37] text-sm font-medium uppercase tracking-wider">Suite {{userId}}</span>
                                 </div>
-                                <h2 class="text-4xl font-light text-white mb-2" >Welcome, <span id="username">Guest</span></h2>
+                                <h2 class="text-4xl font-light text-white mb-2">
+                                    <span data-i18n="welcome">Welcome,</span> <span id="username">Guest</span>
+                                </h2>
                             </div>
                         </div>
                         <div class="flex flex-col items-end space-y-2">
@@ -107,8 +109,8 @@
                                 <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
                             </svg>
                         </div>
-                        <h3 class="text-2xl font-medium text-white mb-2 group-hover:text-white/90">Request Assistance</h3>
-                        <p id="alertStatus" class="text-white/60 group-hover:text-white/70">Request Assistance From Staff</p>
+                        <h3 class="text-2xl font-medium text-white mb-2 group-hover:text-white/90" data-i18n="requestAssistance">Request Assistance</h3>
+                        <p id="alertStatus" class="text-white/60 group-hover:text-white/70" data-i18n="requestAssistanceDesc">Request Assistance From Staff</p>
                     </div>
                     </button>
                     <a href="/user/{{userId}}/meals" class="group relative bg-[#111827]/40 backdrop-blur-md rounded-2xl p-8 border border-white/5 transition-all duration-300 hover:bg-[#1a2234]/40 flex flex-col items-center justify-center">
@@ -121,8 +123,8 @@
                                 <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"></path>
                             </svg>
                         </div>
-                        <h3 class="text-2xl font-medium text-white mb-2 group-hover:text-white/90">Meals</h3>
-                        <p class="text-white/60 group-hover:text-white/70">Meal Selection Service</p>
+                        <h3 class="text-2xl font-medium text-white mb-2 group-hover:text-white/90" data-i18n="meals">Meals</h3>
+                        <p class="text-white/60 group-hover:text-white/70" data-i18n="mealsDesc">Meal Selection Service</p>
                     </div>
                     </a>
                     <button class="group relative bg-[#111827]/40 backdrop-blur-md rounded-2xl p-8 border border-white/5 transition-all duration-300 hover:bg-[#1a2234]/40">
@@ -133,8 +135,8 @@
                                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                             </svg>
                         </div>
-                        <h3 class="text-2xl font-medium text-white mb-2 group-hover:text-white/90">Chat</h3>
-                        <p class="text-white/60 group-hover:text-white/70">Chat With Staff</p>
+                        <h3 class="text-2xl font-medium text-white mb-2 group-hover:text-white/90" data-i18n="chat">Chat</h3>
+                        <p class="text-white/60 group-hover:text-white/70" data-i18n="chatDesc">Chat With Staff</p>
                     </div>
                     </button>
                     <button class="group relative bg-[#111827]/40 backdrop-blur-md rounded-2xl p-8 border border-white/5 transition-all duration-300 hover:bg-[#1a2234]/40">
@@ -146,8 +148,8 @@
                                 <polygon points="10 8 16 12 10 16 10 8"></polygon>
                             </svg>
                         </div>
-                        <h3 class="text-2xl font-medium text-white mb-2 group-hover:text-white/90">Entertainment</h3>
-                        <p class="text-white/60 group-hover:text-white/70">Premium Content</p>
+                        <h3 class="text-2xl font-medium text-white mb-2 group-hover:text-white/90" data-i18n="entertainment">Entertainment</h3>
+                        <p class="text-white/60 group-hover:text-white/70" data-i18n="entertainmentDesc">Premium Content</p>
                     </div>
                     </button>
                     <button class="group relative bg-[#111827]/40 backdrop-blur-md rounded-2xl p-8 border border-white/5 transition-all duration-300 hover:bg-[#1a2234]/40">
@@ -166,11 +168,11 @@
                                 <line x1="18" x2="22" y1="16" y2="16"></line>
                             </svg>
                         </div>
-                        <h3 class="text-2xl font-medium text-white mb-2 group-hover:text-white/90">Room Controls</h3>
-                        <p class="text-white/60 group-hover:text-white/70">Customize Your Space</p>
+                        <h3 class="text-2xl font-medium text-white mb-2 group-hover:text-white/90" data-i18n="roomControls">Room Controls</h3>
+                        <p class="text-white/60 group-hover:text-white/70" data-i18n="roomControlsDesc">Customize Your Space</p>
                     </div>
                     </button>
-                    <button class="group relative bg-[#111827]/40 backdrop-blur-md rounded-2xl p-8 border border-white/5 transition-all duration-300 hover:bg-[#1a2234]/40">
+                    <a href="/user/{{userId}}/settings" class="group relative bg-[#111827]/40 backdrop-blur-md rounded-2xl p-8 border border-white/5 transition-all duration-300 hover:bg-[#1a2234]/40">
                     <div class="absolute inset-0 bg-gradient-to-br from-violet-500/20 to-purple-500/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     <div class="relative flex flex-col items-center">
                         <div class="inline-flex p-4 rounded-xl bg-gradient-to-br from-violet-500 to-purple-500 shadow-lg mb-6 group-hover:scale-110 transition-transform duration-300">
@@ -181,19 +183,20 @@
                                 <circle cx="7" cy="7" r="3"></circle>
                             </svg>
                         </div>
-                        <h3 class="text-2xl font-medium text-white mb-2 group-hover:text-white/90">Settings</h3>
-                        <p class="text-white/60 group-hover:text-white/70">Personalize Settings</p>
+                        <h3 class="text-2xl font-medium text-white mb-2 group-hover:text-white/90" data-i18n="settings">Settings</h3>
+                        <p class="text-white/60 group-hover:text-white/70" data-i18n="personalizeSettings">Personalize Settings</p>
                     </div>
-                    </button>
+                    </a>
                 </div>
             </main>
         </div>
         </div>
 
-        <div class="notification" id="notification">
+        <div class="notification" id="notification" data-i18n="requestSent">
             Request has been sent to staff
         </div>
 
+<script src="/js/translations.js"></script>
 <script>
     const socket = io({
         auth: {

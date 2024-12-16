@@ -79,6 +79,18 @@ app.get('/user/:id/meals', (req, res) => {
     }
 });
 
+app.get('/user/:id/settings', (req, res) => {
+    const userId = req.params.id;
+    if (validIds.has(userId)) {
+        res.render('settings', { 
+            userId,
+            layout: 'main'
+        });
+    } else {
+        res.status(403).send('Invalid ID. Access denied.');
+    }
+});
+
 app.get('/admin', (req, res) => {
     res.render('admin', { 
         validIds: Array.from(validIds),

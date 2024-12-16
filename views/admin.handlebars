@@ -231,6 +231,23 @@
         font-size: 1.1rem;
     }
 
+    .user-name.alert-active {
+        color: #dc3545;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.5;
+        }
+        100% {
+            opacity: 1;
+        }
+    }
+
     .user-id {
         font-size: 0.9rem;
         color: #666;
@@ -333,6 +350,22 @@
     ::-webkit-scrollbar-thumb:hover {
         background: #b08d2a;
     }
+
+    .resolve-btn {
+        background: #198754;
+        color: white;
+        border: none;
+        padding: 0.25rem 0.75rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: background 0.2s;
+        font-size: 0.9rem;
+        margin-left: 0.5rem;
+    }
+
+    .resolve-btn:hover {
+        opacity: 0.9;
+    }
 </style>
 
 <script>
@@ -422,9 +455,74 @@
         updateMealSelectionsDisplay();
     });
 
+    // Store users with active alerts
+    let activeAlerts = new Set();
+
+    function updateUsersList(users) {
+        if (users.length === 0) {
+            connectedUsers.innerHTML = '<p class="no-users">No users connected</p>';
+            return;
+        }
+
+        const usersHtml = users.map(user => `
+            <div class="user-item" id="user-${user.id}">
+                <div class="user-info">
+                    <div class="name-section">
+                        <div class="name-display" id="name-display-${user.id}">
+                            <span class="user-name ${activeAlerts.has(user.id) ? 'alert-active' : ''}" id="username-${user.id}">${user.name}</span>
+                            <span class="user-id">ID: ${user.userId}</span>
+                            <button class="edit-btn" onclick="toggleEdit('${user.id}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            ${activeAlerts.has(user.id) ? `
+                                <button class="resolve-btn" onclick="resolveAlert('${user.id}', '${user.userId}', '${user.name}')">
+                                    Resolved
+                                </button>
+                            ` : ''}
+                        </div>
+                        <div class="name-edit hidden" id="name-edit-${user.id}">
+                            <input 
+                                type="text" 
+                                placeholder="Enter name" 
+                                value="${user.name}"
+                                onkeypress="if(event.key === 'Enter') saveUsername('${user.id}', this.value)"
+                            >
+                            <button class="save-btn" onclick="saveUsername('${user.id}', this.previousElementSibling.value)">
+                                Save
+                            </button>
+                            <button class="cancel-btn" onclick="toggleEdit('${user.id}')">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        
+        connectedUsers.innerHTML = usersHtml;
+    }
+
     // Handle user alerts
     socket.on('user_alert', ({ socketId, userId, username }) => {
         console.log('Alert received:', { socketId, userId, username });
+        
+        // Add user to active alerts
+        activeAlerts.add(socketId);
+        
+        // Update user display to show alert state
+        const usernameElement = document.getElementById(`username-${socketId}`);
+        const nameDisplayElement = document.getElementById(`name-display-${socketId}`);
+        if (usernameElement) {
+            usernameElement.classList.add('alert-active');
+            // Add resolve button if it doesn't exist
+            if (!nameDisplayElement.querySelector('.resolve-btn')) {
+                const resolveBtn = document.createElement('button');
+                resolveBtn.className = 'resolve-btn';
+                resolveBtn.onclick = () => resolveAlert(socketId, userId, username);
+                resolveBtn.textContent = 'Resolved';
+                nameDisplayElement.appendChild(resolveBtn);
+            }
+        }
         
         // Create popup
         const popup = document.createElement('div');
@@ -452,6 +550,31 @@
         setTimeout(() => popup.remove(), 10000);
     });
 
+    function resolveAlert(socketId, userId, username) {
+        // Remove from active alerts
+        activeAlerts.delete(socketId);
+        
+        // Update user display
+        const usernameElement = document.getElementById(`username-${socketId}`);
+        const nameDisplayElement = document.getElementById(`name-display-${socketId}`);
+        if (usernameElement) {
+            usernameElement.classList.remove('alert-active');
+            // Remove resolve button
+            const resolveBtn = nameDisplayElement.querySelector('.resolve-btn');
+            if (resolveBtn) {
+                resolveBtn.remove();
+            }
+        }
+        
+        // Add resolution to alert log
+        const alertElement = document.createElement('div');
+        alertElement.className = 'alert';
+        alertElement.innerHTML = `
+            <p><strong>${username}</strong> (ID: ${userId}) alert was resolved at ${new Date().toLocaleTimeString()}</p>
+        `;
+        alertsDiv.insertBefore(alertElement, alertsDiv.firstChild);
+    }
+
     // Handle user disconnection
     socket.on('user_disconnected', (socketId) => {
         console.log('User disconnected:', socketId);
@@ -460,45 +583,6 @@
             userElement.remove();
         }
     });
-
-    function updateUsersList(users) {
-        if (users.length === 0) {
-            connectedUsers.innerHTML = '<p class="no-users">No users connected</p>';
-            return;
-        }
-
-        const usersHtml = users.map(user => `
-            <div class="user-item" id="user-${user.id}">
-                <div class="user-info">
-                    <div class="name-section">
-                        <div class="name-display" id="name-display-${user.id}">
-                            <span class="user-name">${user.name}</span>
-                            <span class="user-id">ID: ${user.userId}</span>
-                            <button class="edit-btn" onclick="toggleEdit('${user.id}')">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                        </div>
-                        <div class="name-edit hidden" id="name-edit-${user.id}">
-                            <input 
-                                type="text" 
-                                placeholder="Enter name" 
-                                value="${user.name}"
-                                onkeypress="if(event.key === 'Enter') saveUsername('${user.id}', this.value)"
-                            >
-                            <button class="save-btn" onclick="saveUsername('${user.id}', this.previousElementSibling.value)">
-                                Save
-                            </button>
-                            <button class="cancel-btn" onclick="toggleEdit('${user.id}')">
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-        
-        connectedUsers.innerHTML = usersHtml;
-    }
 
     function toggleEdit(socketId) {
         const displayDiv = document.getElementById(`name-display-${socketId}`);
