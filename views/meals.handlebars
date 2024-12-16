@@ -36,6 +36,7 @@
             display: grid;
             gap: 1rem;
             margin-bottom: 2rem;
+            grid-template-columns: repeat(3, 1fr);
         }
 
         .meal-option {
@@ -46,6 +47,11 @@
             border-radius: 0.5rem;
             cursor: pointer;
             transition: all 0.3s ease;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
         .meal-option:hover {
@@ -192,15 +198,29 @@
         // Load saved selections from localStorage
         const savedSelections = localStorage.getItem('mealSelections');
         if (savedSelections) {
-            Object.assign(selections, JSON.parse(savedSelections));
+            const parsed = JSON.parse(savedSelections);
+            Object.assign(selections, parsed);
             // Apply selected state to saved selections
-            for (const [mealType, mealId] of Object.entries(selections)) {
-                if (mealId) {
-                    const option = document.querySelector(`[data-meal-id="${mealId}"]`);
+            for (const [mealType, selection] of Object.entries(selections)) {
+                if (selection) {
+                    const option = document.querySelector(`[data-meal-id="${selection.id}"]`);
                     if (option) option.classList.add('selected');
                 }
             }
         }
+
+        // Handle restored selections from server
+        socket.on('restore_meal_selections', (serverSelections) => {
+            Object.assign(selections, serverSelections);
+            // Apply selected state to restored selections
+            for (const [mealType, selection] of Object.entries(serverSelections)) {
+                if (selection) {
+                    const option = document.querySelector(`[data-meal-id="${selection.id}"]`);
+                    if (option) option.classList.add('selected');
+                }
+            }
+            localStorage.setItem('mealSelections', JSON.stringify(selections));
+        });
 
         mealOptions.forEach(option => {
             option.addEventListener('click', () => {
@@ -216,7 +236,10 @@
                 option.classList.add('selected');
 
                 // Update selections
-                selections[mealType] = mealId;
+                selections[mealType] = {
+                    id: mealId,
+                    name: option.querySelector('.meal-name').textContent
+                };
                 localStorage.setItem('mealSelections', JSON.stringify(selections));
 
                 // Emit selection to server

@@ -50,6 +50,7 @@
     const connectedUsers = document.getElementById('connectedUsers');
     const alertsDiv = document.getElementById('alerts');
     const debugInfo = document.getElementById('debugInfo');
+    let usersData = new Map();
 
     function updateDebugInfo(message) {
         const timestamp = new Date().toLocaleTimeString();
@@ -71,7 +72,72 @@
     socket.on('users_list', (users) => {
         updateDebugInfo(`Received users list: ${users.length} users`);
         console.log('Received users:', users);
+        // Update users data map
+        users.forEach(user => {
+            usersData.set(user.userId, user);
+        });
         updateUsersList(users);
+        // Update meal selections display with new user data
+        updateMealSelectionsDisplay();
+    });
+
+    // Store current meal selections
+    let currentMealSelections = [];
+
+    // Function to update meal selections display
+    function updateMealSelectionsDisplay() {
+        // Clear current selections
+        document.getElementById('breakfastSelections').innerHTML = '';
+        document.getElementById('lunchSelections').innerHTML = '';
+        document.getElementById('dinnerSelections').innerHTML = '';
+        
+        // Group selections by meal type
+        const mealTypes = ['breakfast', 'lunch', 'dinner'];
+        const selectionsByType = {
+            breakfast: [],
+            lunch: [],
+            dinner: []
+        };
+
+        currentMealSelections.forEach(selection => {
+            mealTypes.forEach(type => {
+                if (selection[type]) {
+                    // Find user by userId
+                    const userData = usersData.get(selection.userId) || { name: 'Unknown User', userId: selection.userId };
+                    selectionsByType[type].push({
+                        userName: userData.name,
+                        userId: selection.userId,
+                        mealName: selection[type].name
+                    });
+                }
+            });
+        });
+
+        // Update the UI for each meal type
+        mealTypes.forEach(type => {
+            const container = document.getElementById(`${type}Selections`);
+            if (selectionsByType[type].length === 0) {
+                container.innerHTML = '<div class="no-selections">No selections yet</div>';
+                return;
+            }
+
+            selectionsByType[type].forEach(selection => {
+                const selectionElement = document.createElement('div');
+                selectionElement.className = 'meal-selection';
+                selectionElement.innerHTML = `
+                    <div class="user-name">${selection.userName} (${selection.userId})</div>
+                    <div class="meal-name">${selection.mealName}</div>
+                `;
+                container.appendChild(selectionElement);
+            });
+        });
+    }
+
+    // Handle meal selections update
+    socket.on('meal_selections', (selections) => {
+        updateDebugInfo(`Received meal selections update`);
+        currentMealSelections = selections;
+        updateMealSelectionsDisplay();
     });
 
     // Handle user alerts
@@ -170,59 +236,6 @@
             editDiv.classList.add('hidden');
         }
     }
-
-    // Handle meal selections update
-    socket.on('meal_selections', (selections) => {
-        updateDebugInfo(`Received meal selections update`);
-        
-        // Clear current selections
-        document.getElementById('breakfastSelections').innerHTML = '';
-        document.getElementById('lunchSelections').innerHTML = '';
-        document.getElementById('dinnerSelections').innerHTML = '';
-        
-        // Group selections by meal type
-        const mealTypes = ['breakfast', 'lunch', 'dinner'];
-        const selectionsByType = {
-            breakfast: [],
-            lunch: [],
-            dinner: []
-        };
-
-        selections.forEach(selection => {
-            mealTypes.forEach(type => {
-                if (selection[type]) {
-                    const user = Array.from(users.entries())
-                        .find(([_, data]) => data.userId === selection.userId);
-                    if (user) {
-                        selectionsByType[type].push({
-                            userName: user[1].name,
-                            userId: user[1].userId,
-                            mealName: selection[type].name
-                        });
-                    }
-                }
-            });
-        });
-
-        // Update the UI for each meal type
-        mealTypes.forEach(type => {
-            const container = document.getElementById(`${type}Selections`);
-            if (selectionsByType[type].length === 0) {
-                container.innerHTML = '<div class="no-selections">No selections yet</div>';
-                return;
-            }
-
-            selectionsByType[type].forEach(selection => {
-                const selectionElement = document.createElement('div');
-                selectionElement.className = 'meal-selection';
-                selectionElement.innerHTML = `
-                    <div class="user-name">${selection.userName} (${selection.userId})</div>
-                    <div class="meal-name">${selection.mealName}</div>
-                `;
-                container.appendChild(selectionElement);
-            });
-        });
-    });
 </script>
 
 <style>
