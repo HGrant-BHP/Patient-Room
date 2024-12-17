@@ -267,6 +267,12 @@ io.on('connection', (socket) => {
         });
     });
 
+    // Handle alert acceptance
+    socket.on('alert_accepted', ({ socketId, userId, username }) => {
+        // Forward the acceptance to the user
+        io.to(socketId).emit('alert_accepted');
+    });
+
     // Handle survey submission
     socket.on('survey_submitted', ({ userId, answers }) => {
         // Store survey responses

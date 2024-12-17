@@ -467,6 +467,22 @@
     .request-survey-btn:hover {
         opacity: 0.9;
     }
+
+    .accept-btn {
+        background: #D4AF37;
+        color: white;
+        border: none;
+        padding: 0.25rem 0.75rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: background 0.2s;
+        font-size: 0.9rem;
+        margin-left: 0.5rem;
+    }
+
+    .accept-btn:hover {
+        opacity: 0.9;
+    }
 </style>
 
 <script>
@@ -608,13 +624,13 @@
         const nameDisplayElement = document.getElementById(`name-display-${socketId}`);
         if (usernameElement) {
             usernameElement.classList.add('alert-active');
-            // Add resolve button if it doesn't exist
-            if (!nameDisplayElement.querySelector('.resolve-btn')) {
-                const resolveBtn = document.createElement('button');
-                resolveBtn.className = 'resolve-btn';
-                resolveBtn.onclick = () => resolveAlert(socketId, userId, username);
-                resolveBtn.textContent = 'Resolved';
-                nameDisplayElement.appendChild(resolveBtn);
+            // Add accept button if it doesn't exist
+            if (!nameDisplayElement.querySelector('.accept-btn')) {
+                const acceptBtn = document.createElement('button');
+                acceptBtn.className = 'accept-btn';
+                acceptBtn.onclick = () => acceptAlert(socketId, userId, username);
+                acceptBtn.textContent = 'Accept';
+                nameDisplayElement.appendChild(acceptBtn);
             }
         }
         
@@ -643,6 +659,38 @@
         // Auto-remove popup after 10 seconds
         setTimeout(() => popup.remove(), 10000);
     });
+
+    function acceptAlert(socketId, userId, username) {
+        // Update user display
+        const nameDisplayElement = document.getElementById(`name-display-${socketId}`);
+        if (nameDisplayElement) {
+            // Remove accept button
+            const acceptBtn = nameDisplayElement.querySelector('.accept-btn');
+            if (acceptBtn) {
+                acceptBtn.remove();
+            }
+            
+            // Add resolve button if it doesn't exist
+            if (!nameDisplayElement.querySelector('.resolve-btn')) {
+                const resolveBtn = document.createElement('button');
+                resolveBtn.className = 'resolve-btn';
+                resolveBtn.onclick = () => resolveAlert(socketId, userId, username);
+                resolveBtn.textContent = 'Resolved';
+                nameDisplayElement.appendChild(resolveBtn);
+            }
+        }
+        
+        // Add to alert log
+        const alertElement = document.createElement('div');
+        alertElement.className = 'alert';
+        alertElement.innerHTML = `
+            <p><strong>${username}</strong> (ID: ${userId}) alert was accepted at ${new Date().toLocaleTimeString()}</p>
+        `;
+        alertsDiv.insertBefore(alertElement, alertsDiv.firstChild);
+
+        // Emit alert accepted event
+        socket.emit('alert_accepted', { socketId, userId, username });
+    }
 
     function resolveAlert(socketId, userId, username) {
         // Remove from active alerts

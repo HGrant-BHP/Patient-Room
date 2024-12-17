@@ -175,6 +175,10 @@
             Request has been sent to staff
         </div>
 
+        <div class="notification" id="acceptedNotification" data-i18n="requestAccepted">
+            Staff is on their way
+        </div>
+
         <div class="survey-modal" id="surveyModal">
             <div class="survey-modal-content">
                 <h2>Survey Request</h2>
@@ -351,6 +355,21 @@
         modal.classList.remove('show');
         socket.emit('survey_declined');
     });
+
+    // Handle alert acceptance
+    socket.on('alert_accepted', () => {
+        // Show acceptance notification
+        const acceptedNotification = document.getElementById('acceptedNotification');
+        acceptedNotification.classList.add('show');
+        setTimeout(() => {
+            acceptedNotification.classList.remove('show');
+        }, 3000);
+
+        // Update alert button appearance
+        alertButton.classList.add('alert-accepted');
+        const alertStatus = document.getElementById('alertStatus');
+        alertStatus.textContent = 'Staff is on their way';
+    });
 </script> 
 
 <style>
@@ -365,11 +384,20 @@
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         transform: translateX(200%);
         transition: transform 0.3s ease;
-        z-index: 50;
+        z-index: 1000;
     }
 
     .notification.show {
         transform: translateX(0);
+    }
+
+    #acceptedNotification {
+        background: #198754;
+        top: 6rem;
+    }
+
+    .alert-accepted {
+        background: #198754 !important;
     }
 
     .survey-modal {
