@@ -722,9 +722,11 @@
                             <button class="edit-btn" onclick="toggleEdit('${user.userId}')">
                                 <i class="fas fa-edit"></i>
                             </button>
+                            ${!pendingSurveys.has(user.userId) ? `
                             <button class="request-survey-btn" onclick="requestSurvey('${user.userId}')">
                                 <i class="fas fa-clipboard-list"></i> Request Survey
                             </button>
+                            ` : ''}
                         </div>
                         <div class="name-edit hidden" id="name-edit-${user.userId}">
                             <input type="text" class="name-input" placeholder="Enter Patient ID" value="">
@@ -1016,16 +1018,32 @@
         editDiv.classList.add('hidden');
     }
 
-    // Store survey responses
+    // Store survey responses and pending surveys
     let surveyResponses = new Map();
+    let pendingSurveys = new Map();
+
+    // Handle initial pending surveys state
+    socket.on('pending_surveys', (pendingList) => {
+        console.log('Received pending surveys:', pendingList);
+        pendingSurveys.clear();
+        if (Array.isArray(pendingList)) {
+            pendingList.forEach(userId => {
+                pendingSurveys.set(userId, true);
+            });
+        }
+        updateUsersList(); // Refresh the users list to update button visibility
+    });
 
     // Handle survey responses update
     socket.on('survey_responses', (responses) => {
         console.log('Received survey responses:', responses);
         responses.forEach(response => {
             surveyResponses.set(response.userId, response.responses);
+            // When we receive a response, remove from pending
+            pendingSurveys.delete(response.userId);
         });
         updateSurveyResponsesDisplay();
+        updateUsersList(); // Refresh the users list to update button visibility
     });
 
     // Store survey questions
@@ -1089,7 +1107,10 @@
     }
 
     function requestSurvey(userId) {
+        console.log('Requesting survey for:', userId);
         socket.emit('request_survey', { userId });
+        pendingSurveys.set(userId, true);
+        updateUsersList(); // Refresh the users list to hide the button
     }
 
     async function searchPatient() {

@@ -132,27 +132,23 @@ io.on('connection', (socket) => {
         console.log('Admin connected');
         adminSockets.add(socket.id);
         
-        // Send current users list to new admin
-        const usersList = Array.from(validIds).map(userId => ({
-            id: userId,
-            userId: userId,
-            name: userNames.get(userId) || 'Guest'
+        // Send initial users list
+        const usersList = Array.from(users.entries()).map(([id, data]) => ({
+            id,
+            ...data
         }));
         socket.emit('users_list', usersList);
 
-        // Send current meal selections to new admin
-        const mealsList = Array.from(mealSelections.entries()).map(([userId, selections]) => ({
-            userId,
-            ...selections
-        }));
-        socket.emit('meal_selections', mealsList);
+        // Send initial pending surveys state
+        const pendingList = Array.from(pendingSurveys.keys());
+        socket.emit('pending_surveys', pendingList);
 
-        // Send current survey responses to new admin
-        const surveyList = Array.from(surveyResponses.entries()).map(([userId, responses]) => ({
+        // Send initial survey responses
+        const responsesList = Array.from(surveyResponses.entries()).map(([userId, responses]) => ({
             userId,
             responses
         }));
-        socket.emit('survey_responses', surveyList);
+        socket.emit('survey_responses', responsesList);
         
         socket.on('disconnect', () => {
             console.log('Admin disconnected');
@@ -183,13 +179,17 @@ io.on('connection', (socket) => {
 
         // Handle admin requesting survey from user
         socket.on('request_survey', ({ userId }) => {
+            console.log('Admin requesting survey for:', userId);
+            // Add to pending surveys regardless of user's online status
+            pendingSurveys.set(userId, true);
+            declinedSurveys.delete(userId);
+
+            // Try to find the user if they're online
             const userSocket = Array.from(users.entries())
                 .find(([_, data]) => data.userId === userId);
 
             if (userSocket) {
                 // User is online, send immediately
-                declinedSurveys.delete(userId);
-                pendingSurveys.set(userId, true);
                 io.to(userSocket[0]).emit('survey_requested');
             } else {
                 // User is offline, queue the action
@@ -200,6 +200,9 @@ io.on('connection', (socket) => {
                 });
                 pendingActions.set(userId, actions);
             }
+
+            // Notify all admins of the updated pending state
+            broadcastToAdmins('pending_surveys', Array.from(pendingSurveys.keys()));
         });
         
         return;
@@ -295,26 +298,29 @@ io.on('connection', (socket) => {
 
     // Handle survey submission
     socket.on('survey_submitted', ({ userId, answers }) => {
-        // Store survey responses
         surveyResponses.set(userId, answers);
+        pendingSurveys.delete(userId); // Remove from pending when submitted
         
-        // Remove from pending surveys
-        pendingSurveys.delete(userId);
-
-        // Broadcast to admins
-        const surveyList = Array.from(surveyResponses.entries()).map(([userId, responses]) => ({
-            userId,
-            responses
-        }));
-        broadcastToAdmins('survey_responses', surveyList);
+        // Notify all admins of the new response and updated pending state
+        adminSockets.forEach(adminId => {
+            io.to(adminId).emit('survey_responses', [{
+                userId,
+                responses: answers
+            }]);
+            io.to(adminId).emit('pending_surveys', Array.from(pendingSurveys.keys()));
+        });
     });
 
-    // Handle survey declined
+    // Handle survey decline
     socket.on('survey_declined', () => {
-        const userId = socket.userId;
-        if (userId) {
-            declinedSurveys.set(userId, true);
-            pendingSurveys.delete(userId);
+        if (socket.userId) {
+            pendingSurveys.delete(socket.userId);
+            declinedSurveys.set(socket.userId, true);
+            
+            // Notify all admins of the updated pending state
+            adminSockets.forEach(adminId => {
+                io.to(adminId).emit('pending_surveys', Array.from(pendingSurveys.keys()));
+            });
         }
     });
 
