@@ -133,16 +133,11 @@ io.on('connection', (socket) => {
         adminSockets.add(socket.id);
         
         // Send current users list to new admin
-        const usersList = Array.from(validIds).map(userId => {
-            const userSockets = Array.from(users.entries()).filter(([_, user]) => user.userId === userId);
-            const isConnected = userSockets.length > 0;
-            return {
-                id: userSockets[0]?.[0] || userId,
-                userId: userId,
-                name: userNames.get(userId) || 'Guest',
-                connected: isConnected
-            };
-        });
+        const usersList = Array.from(validIds).map(userId => ({
+            id: userId,
+            userId: userId,
+            name: userNames.get(userId) || 'Guest'
+        }));
         socket.emit('users_list', usersList);
 
         // Send current meal selections to new admin
@@ -178,16 +173,11 @@ io.on('connection', (socket) => {
             }
             
             // Broadcast updated users list to all admins
-            const updatedUsersList = Array.from(validIds).map(userId => {
-                const userSockets = Array.from(users.entries()).filter(([_, user]) => user.userId === userId);
-                const isConnected = userSockets.length > 0;
-                return {
-                    id: userSockets[0]?.[0] || userId,
-                    userId: userId,
-                    name: userNames.get(userId) || 'Guest',
-                    connected: isConnected
-                };
-            });
+            const updatedUsersList = Array.from(validIds).map(userId => ({
+                id: userId,
+                userId: userId,
+                name: userNames.get(userId) || 'Guest'
+            }));
             broadcastToAdmins('users_list', updatedUsersList);
         });
 
@@ -231,16 +221,11 @@ io.on('connection', (socket) => {
     }
 
     // Broadcast updated users list to all admins
-    const updatedUsersList = Array.from(validIds).map(userId => {
-        const userSockets = Array.from(users.entries()).filter(([_, user]) => user.userId === userId);
-        const isConnected = userSockets.length > 0;
-        return {
-            id: userSockets[0]?.[0] || userId,
-            userId: userId,
-            name: userNames.get(userId) || 'Guest',
-            connected: isConnected
-        };
-    });
+    const updatedUsersList = Array.from(validIds).map(userId => ({
+        id: userId,
+        userId: userId,
+        name: userNames.get(userId) || 'Guest'
+    }));
     broadcastToAdmins('users_list', updatedUsersList);
 
     // Process any pending actions for this user
@@ -338,16 +323,11 @@ io.on('connection', (socket) => {
         users.delete(socket.id);
         
         // Send updated users list to all admins
-        const updatedUsersList = Array.from(validIds).map(userId => {
-            const userSockets = Array.from(users.entries()).filter(([_, user]) => user.userId === userId);
-            const isConnected = userSockets.length > 0;
-            return {
-                id: userSockets[0]?.[0] || userId,
-                userId: userId,
-                name: userNames.get(userId) || 'Guest',
-                connected: isConnected
-            };
-        });
+        const updatedUsersList = Array.from(validIds).map(userId => ({
+            id: userId,
+            userId: userId,
+            name: userNames.get(userId) || 'Guest'
+        }));
         broadcastToAdmins('users_list', updatedUsersList);
         
         console.log('User disconnected');

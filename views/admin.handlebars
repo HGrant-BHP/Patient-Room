@@ -573,18 +573,57 @@
         margin-top: 1rem;
     }
 
-    .user-item.disconnected {
-        opacity: 0.7;
+    .user-item {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 0.75rem;
+        margin-bottom: 0.75rem;
     }
-    .connection-status {
-        margin-left: 0.5rem;
-        font-size: 0.9rem;
+
+    .user-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
-    .connection-status.connected {
-        color: #198754;
+
+    .name-section {
+        flex: 1;
     }
-    .connection-status.disconnected {
+
+    .name-display {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .user-name {
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .user-name.alert-active {
         color: #dc3545;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.5;
+        }
+        100% {
+            opacity: 1;
+        }
+    }
+
+    .user-id {
+        font-size: 0.9rem;
+        color: #666;
+        background: #f1f1f1;
+        padding: 0.25rem 0.75rem;
+        border-radius: 0.5rem;
     }
 </style>
 
@@ -671,42 +710,35 @@
             }
         });
 
-        const usersHtml = Array.from(allUsers.values()).map(user => {
-            const isConnected = user.connected;
-            return `
-                <div class="user-item ${isConnected ? 'connected' : 'disconnected'}" id="user-${user.userId}">
-                    <div class="user-info">
-                        <div class="name-section">
-                            <div class="name-display" id="name-display-${user.userId}">
-                                <span class="user-name ${activeAlerts.has(user.userId) ? 'alert-active' : ''}" id="username-${user.userId}">
-                                    ${user.name}
-                                </span>
-                                <span class="user-id">ID: ${user.userId}</span>
-                                <span class="connection-status ${isConnected ? 'connected' : 'disconnected'}">
-                                    <i class="fas ${isConnected ? 'fa-circle-check' : 'fa-circle-xmark'}"></i>
-                                    ${isConnected ? 'Online' : 'Offline'}
-                                </span>
-                                <button class="edit-btn" onclick="toggleEdit('${user.userId}')">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="request-survey-btn" onclick="requestSurvey('${user.userId}')">
-                                    <i class="fas fa-clipboard-list"></i> Request Survey
-                                </button>
-                            </div>
-                            <div class="name-edit hidden" id="name-edit-${user.userId}">
-                                <input type="text" class="name-input" placeholder="Enter Patient ID" value="">
-                                <button class="save-btn" onclick="handleSave('${user.userId}', this.previousElementSibling.value)">
-                                    <i class="fas fa-check"></i>
-                                </button>
-                                <button class="cancel-btn" onclick="handleCancel('${user.userId}')">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
+        const usersHtml = Array.from(allUsers.values()).map(user => `
+            <div class="user-item" id="user-${user.userId}">
+                <div class="user-info">
+                    <div class="name-section">
+                        <div class="name-display" id="name-display-${user.userId}">
+                            <span class="user-name ${activeAlerts.has(user.userId) ? 'alert-active' : ''}" id="username-${user.userId}">
+                                ${user.name}
+                            </span>
+                            <span class="user-id">ID: ${user.userId}</span>
+                            <button class="edit-btn" onclick="toggleEdit('${user.userId}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="request-survey-btn" onclick="requestSurvey('${user.userId}')">
+                                <i class="fas fa-clipboard-list"></i> Request Survey
+                            </button>
+                        </div>
+                        <div class="name-edit hidden" id="name-edit-${user.userId}">
+                            <input type="text" class="name-input" placeholder="Enter Patient ID" value="">
+                            <button class="save-btn" onclick="handleSave('${user.userId}', this.previousElementSibling.value)">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="cancel-btn" onclick="handleCancel('${user.userId}')">
+                                <i class="fas fa-times"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
-            `;
-        }).join('');
+            </div>
+        `).join('');
         
         connectedUsers.innerHTML = usersHtml || '<p class="no-users">No valid IDs configured</p>';
     }
