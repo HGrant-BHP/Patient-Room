@@ -120,6 +120,8 @@
         display: flex;
         flex-wrap: wrap;
         gap: 0.5rem;
+        max-height: 150px;
+        overflow-y: auto;
     }
 
     .id-tag {
@@ -179,6 +181,8 @@
         background: #f8f9fa;
         padding: 1.5rem;
         border-radius: 0.75rem;
+        max-height: 400px;
+        overflow-y: auto;
     }
 
     .meal-time-card h3 {
@@ -546,6 +550,8 @@
         grid-template-columns: repeat(3, 1fr);
         gap: 1rem;
         margin-top: 1rem;
+        max-height: 300px;
+        overflow-y: auto;
     }
 
     .patient-info-item {
@@ -624,6 +630,16 @@
         background: #f1f1f1;
         padding: 0.25rem 0.75rem;
         border-radius: 0.5rem;
+    }
+
+    #connectedUsers {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    #alerts {
+        max-height: 500px;
+        overflow-y: auto;
     }
 </style>
 

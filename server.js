@@ -17,7 +17,7 @@ app.use(express.static('public'));
 
 // Store connected users and valid IDs
 const users = new Map();
-const validIds = new Set(['123', '456', '789']); // Example valid IDs - replace with your actual IDs
+const validIds = new Set(['123', '456', '789', '000']); // Example valid IDs - replace with your actual IDs
 const adminSockets = new Set(); // Track admin connections
 const mealSelections = new Map(); // Track meal selections by userId
 const surveyResponses = new Map();
