@@ -10,6 +10,7 @@
     <div class="admin-section">
         <div class="dashboard-header">
             <h1 class="text-white"><i class="fas fa-hospital-user"></i> Admin Dashboard</h1>
+            
             <div class="valid-ids">
                 <h2><i class="fas fa-key"></i> Valid IDs</h2>
                 <div class="id-tags">
@@ -483,6 +484,94 @@
     .accept-btn:hover {
         opacity: 0.9;
     }
+
+    .patient-search {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        margin-bottom: 1.5rem;
+    }
+
+    .patient-search h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .search-container {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .search-input {
+        flex: 1;
+        padding: 0.75rem;
+        border: 1px solid #e1e1e1;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+    }
+
+    .search-btn {
+        background: #D4AF37;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .search-btn:hover {
+        background: #B59030;
+    }
+
+    .patient-details {
+        margin-top: 1rem;
+        padding: 1rem;
+        border: 1px solid #e1e1e1;
+        border-radius: 0.5rem;
+        background: #f8f9fa;
+    }
+
+    .patient-details.hidden {
+        display: none;
+    }
+
+    .patient-info-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .patient-info-item {
+        background: white;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        border: 1px solid #e1e1e1;
+    }
+
+    .patient-info-label {
+        font-size: 0.875rem;
+        color: #666;
+        margin-bottom: 0.25rem;
+    }
+
+    .patient-info-value {
+        font-weight: 500;
+    }
+
+    .error-message {
+        color: #dc3545;
+        padding: 0.75rem;
+        background: #f8d7da;
+        border-radius: 0.5rem;
+        margin-top: 1rem;
+    }
 </style>
 
 <script>
@@ -596,11 +685,11 @@
                             </button>
                         </div>
                         <div class="name-edit hidden" id="name-edit-${user.id}">
-                            <input type="text" class="name-input" value="${user.name}">
-                            <button class="save-btn" onclick="saveUsername('${user.id}', this.previousElementSibling.value)">
+                            <input type="text" class="name-input" placeholder="Enter Patient ID" value="">
+                            <button class="save-btn" onclick="handleSave('${user.id}', this.previousElementSibling.value)">
                                 <i class="fas fa-check"></i>
                             </button>
-                            <button class="cancel-btn" onclick="toggleEdit('${user.id}')">
+                            <button class="cancel-btn" onclick="handleCancel('${user.id}')">
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
@@ -726,16 +815,101 @@
         }
     });
 
+    async function fetchPatientDetails(patientId, socketId, input) {
+        try {
+            const response = await fetch(`http://localhost/Hospital-Management-System/api/patients.php?id=${patientId}`, {
+                headers: {
+                    'Authorization': 'Bearer 2c45d45b9f1cd49e1614b6e7b78c4c55d7aa1b2ff7fb6670d7ee3845e0eb6668'
+                }
+            });
+            const data = await response.json();
+            
+            if (data.error) {
+                alert('Patient not found');
+                return false;
+            }
+
+            // Format the patient's full name
+            const fullName = `${data.first_name} ${data.middle_name} ${data.last_name}`.trim();
+            
+            // Update the input value with the patient's name
+            input.value = fullName;
+            
+            // Auto-save the username
+            saveUsername(socketId, fullName);
+            return true;
+        } catch (error) {
+            console.error('Error fetching patient data:', error);
+            alert('Error fetching patient data. Please try again.');
+            return false;
+        }
+    }
+
     function toggleEdit(socketId) {
         const displayDiv = document.getElementById(`name-display-${socketId}`);
         const editDiv = document.getElementById(`name-edit-${socketId}`);
+        const input = editDiv.querySelector('input');
+        
         displayDiv.classList.toggle('hidden');
         editDiv.classList.toggle('hidden');
+        
         if (!editDiv.classList.contains('hidden')) {
-            const input = editDiv.querySelector('input');
-            input.value = displayDiv.querySelector('.user-name').textContent;
+            // Clear the input and store the current name in a data attribute
+            const currentName = displayDiv.querySelector('.user-name').textContent;
+            input.dataset.previousName = currentName;
+            input.value = '';
             input.focus();
+            
+            // Add event listener for Enter key
+            input.onkeypress = async function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    await handleSave(socketId, this.value);
+                }
+            };
         }
+    }
+
+    async function handleSave(socketId, patientId) {
+        const editDiv = document.getElementById(`name-edit-${socketId}`);
+        const displayDiv = document.getElementById(`name-display-${socketId}`);
+        const input = editDiv.querySelector('input');
+        
+        if (!patientId.trim()) {
+            alert('Please enter a patient ID');
+            return;
+        }
+
+        // Hide input box immediately
+        displayDiv.classList.remove('hidden');
+        editDiv.classList.add('hidden');
+
+        const success = await fetchPatientDetails(patientId, socketId, input);
+        if (!success) {
+            // If failed, show input box again
+            displayDiv.classList.add('hidden');
+            editDiv.classList.remove('hidden');
+            input.focus();
+        } else {
+            input.value = '';  // Clear the input after successful save
+        }
+    }
+
+    function handleCancel(socketId) {
+        const displayDiv = document.getElementById(`name-display-${socketId}`);
+        const editDiv = document.getElementById(`name-edit-${socketId}`);
+        const input = editDiv.querySelector('input');
+        
+        // Restore the previous name
+        const previousName = input.dataset.previousName;
+        displayDiv.querySelector('.user-name').textContent = previousName;
+        
+        // Clear the input
+        input.value = '';
+        
+        // Hide/show the appropriate divs
+        displayDiv.classList.remove('hidden');
+        editDiv.classList.add('hidden');
     }
 
     function saveUsername(socketId, username) {
@@ -824,6 +998,53 @@
     function requestSurvey(userId) {
         socket.emit('request_survey', { userId });
     }
+
+    async function searchPatient() {
+        const patientId = document.getElementById('patientId').value.trim();
+        if (!patientId) {
+            alert('Please enter a patient ID');
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost/Hospital-Management-System/api/patients.php?id=${patientId}`, {
+                headers: {
+                    'Authorization': 'Bearer 2c45d45b9f1cd49e1614b6e7b78c4c55d7aa1b2ff7fb6670d7ee3845e0eb6668'
+                }
+            });
+            const data = await response.json();
+            
+            if (data.error) {
+                alert('Patient not found');
+                return;
+            }
+
+            // Format the patient's full name
+            const fullName = `${data.first_name} ${data.middle_name} ${data.last_name}`.trim();
+            
+            // Get the first connected user (assuming we're setting it for the first/only user)
+            const firstUser = Array.from(usersData.values())[0];
+            if (firstUser) {
+                // Update the username through the socket
+                socket.emit('set_username', { socketId: firstUser.id, username: fullName });
+                
+                // Clear the search input
+                document.getElementById('patientId').value = '';
+            } else {
+                alert('No connected user found');
+            }
+        } catch (error) {
+            console.error('Error fetching patient data:', error);
+            alert('Error fetching patient data. Please try again.');
+        }
+    }
+
+    // Add event listener for Enter key
+    document.getElementById('patientId').addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            searchPatient();
+        }
+    });
 </script>
 </body>
 </html> 
