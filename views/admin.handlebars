@@ -572,6 +572,20 @@
         border-radius: 0.5rem;
         margin-top: 1rem;
     }
+
+    .user-item.disconnected {
+        opacity: 0.7;
+    }
+    .connection-status {
+        margin-left: 0.5rem;
+        font-size: 0.9rem;
+    }
+    .connection-status.connected {
+        color: #198754;
+    }
+    .connection-status.disconnected {
+        color: #dc3545;
+    }
 </style>
 
 <script>
@@ -579,6 +593,30 @@
     const connectedUsers = document.getElementById('connectedUsers');
     const alertsDiv = document.getElementById('alerts');
     let usersData = new Map();
+    let persistentUserData = new Map(); // Store data for all approved users
+
+    // Initialize persistent data for all valid IDs
+    function initializePersistentData() {
+        const validIdElements = document.querySelectorAll('.id-tag');
+        validIdElements.forEach(element => {
+            const userId = element.textContent;
+            if (!persistentUserData.has(userId)) {
+                persistentUserData.set(userId, {
+                    userId,
+                    name: 'Guest',
+                    connected: false,
+                    mealSelections: {
+                        breakfast: null,
+                        lunch: null,
+                        dinner: null
+                    }
+                });
+            }
+        });
+    }
+
+    // Call initialization on page load
+    initializePersistentData();
 
     // Socket connection status
     socket.on('connect', () => {
@@ -587,119 +625,153 @@
 
     socket.on('disconnect', () => {
         console.log('Disconnected from server');
-        connectedUsers.innerHTML = '<p class="no-users">Disconnected from server...</p>';
+        // Mark all users as disconnected but keep their data
+        for (let [userId, userData] of persistentUserData) {
+            userData.connected = false;
+        }
+        updateUsersList();
     });
 
     // Handle users list update
     socket.on('users_list', (users) => {
         console.log('Received users:', users);
-        // Update users data map
         users.forEach(user => {
+            // Update connection status and sync with persistent data
+            if (persistentUserData.has(user.userId)) {
+                const persistentData = persistentUserData.get(user.userId);
+                persistentData.connected = true;
+                // If the user had a name before, restore it
+                if (persistentData.name !== 'Guest') {
+                    socket.emit('set_username', { socketId: user.id, username: persistentData.name });
+                }
+                // Update socket ID
+                persistentData.socketId = user.id;
+            }
             usersData.set(user.userId, user);
         });
-        updateUsersList(users);
-        // Update meal selections display with new user data
+        updateUsersList();
         updateMealSelectionsDisplay();
     });
 
-    // Store current meal selections
-    let currentMealSelections = [];
+    function updateUsersList() {
+        // Create a map of all valid IDs with their current data
+        const allUsers = new Map();
+        persistentUserData.forEach((data, userId) => {
+            allUsers.set(userId, {
+                ...data,
+                connected: false // Default to disconnected
+            });
+        });
 
-    // Function to update meal selections display
+        // Update connected users
+        usersData.forEach((user, socketId) => {
+            if (allUsers.has(user.userId)) {
+                allUsers.get(user.userId).connected = true;
+                allUsers.get(user.userId).name = user.name;
+            }
+        });
+
+        const usersHtml = Array.from(allUsers.values()).map(user => {
+            const isConnected = user.connected;
+            return `
+                <div class="user-item ${isConnected ? 'connected' : 'disconnected'}" id="user-${user.userId}">
+                    <div class="user-info">
+                        <div class="name-section">
+                            <div class="name-display" id="name-display-${user.userId}">
+                                <span class="user-name ${activeAlerts.has(user.userId) ? 'alert-active' : ''}" id="username-${user.userId}">
+                                    ${user.name}
+                                </span>
+                                <span class="user-id">ID: ${user.userId}</span>
+                                <span class="connection-status ${isConnected ? 'connected' : 'disconnected'}">
+                                    <i class="fas ${isConnected ? 'fa-circle-check' : 'fa-circle-xmark'}"></i>
+                                    ${isConnected ? 'Online' : 'Offline'}
+                                </span>
+                                <button class="edit-btn" onclick="toggleEdit('${user.userId}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="request-survey-btn" onclick="requestSurvey('${user.userId}')">
+                                    <i class="fas fa-clipboard-list"></i> Request Survey
+                                </button>
+                            </div>
+                            <div class="name-edit hidden" id="name-edit-${user.userId}">
+                                <input type="text" class="name-input" placeholder="Enter Patient ID" value="">
+                                <button class="save-btn" onclick="handleSave('${user.userId}', this.previousElementSibling.value)">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button class="cancel-btn" onclick="handleCancel('${user.userId}')">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        connectedUsers.innerHTML = usersHtml || '<p class="no-users">No valid IDs configured</p>';
+    }
+
+    function saveUsername(socketId, username) {
+        if (username.trim()) {
+            socket.emit('set_username', { socketId, username: username.trim() });
+            // Update both current and persistent data
+            for (let [userId, userData] of persistentUserData) {
+                if (userData.socketId === socketId) {
+                    userData.name = username.trim();
+                    break;
+                }
+            }
+            const displayDiv = document.getElementById(`name-display-${socketId}`);
+            const editDiv = document.getElementById(`name-edit-${socketId}`);
+            displayDiv.querySelector('.user-name').textContent = username.trim();
+            displayDiv.classList.remove('hidden');
+            editDiv.classList.add('hidden');
+        }
+    }
+
+    // Update meal selections display
     function updateMealSelectionsDisplay() {
-        // Clear current selections
         document.getElementById('breakfastSelections').innerHTML = '';
         document.getElementById('lunchSelections').innerHTML = '';
         document.getElementById('dinnerSelections').innerHTML = '';
         
-        // Group selections by meal type
-        const mealTypes = ['breakfast', 'lunch', 'dinner'];
-        const selectionsByType = {
-            breakfast: [],
-            lunch: [],
-            dinner: []
-        };
-
-        currentMealSelections.forEach(selection => {
-            mealTypes.forEach(type => {
-                if (selection[type]) {
-                    // Find user by userId
-                    const userData = usersData.get(selection.userId) || { name: 'Unknown User', userId: selection.userId };
-                    selectionsByType[type].push({
-                        userName: userData.name,
-                        userId: selection.userId,
-                        mealName: selection[type].name
-                    });
-                }
-            });
-        });
-
-        // Update the UI for each meal type
-        mealTypes.forEach(type => {
-            const container = document.getElementById(`${type}Selections`);
-            if (selectionsByType[type].length === 0) {
-                container.innerHTML = '<div class="no-selections">No selections yet</div>';
-                return;
+        for (let [userId, userData] of persistentUserData) {
+            if (userData.mealSelections) {
+                ['breakfast', 'lunch', 'dinner'].forEach(type => {
+                    const selection = userData.mealSelections[type];
+                    if (selection) {
+                        const container = document.getElementById(`${type}Selections`);
+                        const selectionElement = document.createElement('div');
+                        selectionElement.className = 'meal-selection';
+                        selectionElement.innerHTML = `
+                            <div class="user-name">${userData.name} (${userId})</div>
+                            <div class="meal-name">${selection.name}</div>
+                        `;
+                        container.appendChild(selectionElement);
+                    }
+                });
             }
-
-            selectionsByType[type].forEach(selection => {
-                const selectionElement = document.createElement('div');
-                selectionElement.className = 'meal-selection';
-                selectionElement.innerHTML = `
-                    <div class="user-name">${selection.userName} (${selection.userId})</div>
-                    <div class="meal-name">${selection.mealName}</div>
-                `;
-                container.appendChild(selectionElement);
-            });
-        });
+        }
     }
 
     // Handle meal selections update
     socket.on('meal_selections', (selections) => {
         console.log('Received meal selections update');
-        currentMealSelections = selections;
+        selections.forEach(selection => {
+            if (persistentUserData.has(selection.userId)) {
+                const userData = persistentUserData.get(selection.userId);
+                userData.mealSelections = {
+                    breakfast: selection.breakfast || null,
+                    lunch: selection.lunch || null,
+                    dinner: selection.dinner || null
+                };
+            }
+        });
         updateMealSelectionsDisplay();
     });
 
     // Store users with active alerts
     let activeAlerts = new Set();
-
-    function updateUsersList(users) {
-        if (users.length === 0) {
-            connectedUsers.innerHTML = '<p class="no-users">No users connected</p>';
-            return;
-        }
-
-        const usersHtml = users.map(user => `
-            <div class="user-item" id="user-${user.id}">
-                <div class="user-info">
-                    <div class="name-section">
-                        <div class="name-display" id="name-display-${user.id}">
-                            <span class="user-name ${activeAlerts.has(user.id) ? 'alert-active' : ''}" id="username-${user.id}">${user.name}</span>
-                            <span class="user-id">ID: ${user.userId}</span>
-                            <button class="edit-btn" onclick="toggleEdit('${user.id}')">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="request-survey-btn" onclick="requestSurvey('${user.userId}')">
-                                <i class="fas fa-clipboard-list"></i> Request Survey
-                            </button>
-                        </div>
-                        <div class="name-edit hidden" id="name-edit-${user.id}">
-                            <input type="text" class="name-input" placeholder="Enter Patient ID" value="">
-                            <button class="save-btn" onclick="handleSave('${user.id}', this.previousElementSibling.value)">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <button class="cancel-btn" onclick="handleCancel('${user.id}')">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-        
-        connectedUsers.innerHTML = usersHtml;
-    }
 
     // Handle user alerts
     socket.on('user_alert', ({ socketId, userId, username }) => {
@@ -910,17 +982,6 @@
         // Hide/show the appropriate divs
         displayDiv.classList.remove('hidden');
         editDiv.classList.add('hidden');
-    }
-
-    function saveUsername(socketId, username) {
-        if (username.trim()) {
-            socket.emit('set_username', { socketId, username: username.trim() });
-            const displayDiv = document.getElementById(`name-display-${socketId}`);
-            const editDiv = document.getElementById(`name-edit-${socketId}`);
-            displayDiv.querySelector('.user-name').textContent = username.trim();
-            displayDiv.classList.remove('hidden');
-            editDiv.classList.add('hidden');
-        }
     }
 
     // Store survey responses

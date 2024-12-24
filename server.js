@@ -23,6 +23,8 @@ const mealSelections = new Map(); // Track meal selections by userId
 const surveyResponses = new Map();
 const pendingSurveys = new Map();
 const declinedSurveys = new Map(); // Track declined surveys
+const pendingActions = new Map(); // Store actions for offline users
+const userNames = new Map(); // Persistent storage for user names
 
 // Routes
 app.get('/', (req, res) => {
@@ -131,11 +133,16 @@ io.on('connection', (socket) => {
         adminSockets.add(socket.id);
         
         // Send current users list to new admin
-        const usersList = Array.from(users.entries()).map(([id, data]) => ({
-            id,
-            userId: data.userId,
-            name: data.name
-        }));
+        const usersList = Array.from(validIds).map(userId => {
+            const userSockets = Array.from(users.entries()).filter(([_, user]) => user.userId === userId);
+            const isConnected = userSockets.length > 0;
+            return {
+                id: userSockets[0]?.[0] || userId,
+                userId: userId,
+                name: userNames.get(userId) || 'Guest',
+                connected: isConnected
+            };
+        });
         socket.emit('users_list', usersList);
 
         // Send current meal selections to new admin
@@ -159,36 +166,49 @@ io.on('connection', (socket) => {
         
         // Handle admin setting username
         socket.on('set_username', ({ socketId, username }) => {
-            if (users.has(socketId)) {
-                users.get(socketId).name = username;
-                io.to(socketId).emit('username_updated', { username });
-                
-                // Broadcast updated users list to all admins
-                const updatedUsersList = Array.from(users.entries()).map(([id, data]) => ({
-                    id,
-                    userId: data.userId,
-                    name: data.name
-                }));
-                broadcastToAdmins('users_list', updatedUsersList);
+            // Store in persistent userNames map using userId
+            userNames.set(socketId, username);
+            
+            // Find all socket instances of this user and update them
+            for (const [id, user] of users.entries()) {
+                if (user.userId === socketId) {
+                    user.name = username;
+                    io.to(id).emit('username_updated', { username });
+                }
             }
+            
+            // Broadcast updated users list to all admins
+            const updatedUsersList = Array.from(validIds).map(userId => {
+                const userSockets = Array.from(users.entries()).filter(([_, user]) => user.userId === userId);
+                const isConnected = userSockets.length > 0;
+                return {
+                    id: userSockets[0]?.[0] || userId,
+                    userId: userId,
+                    name: userNames.get(userId) || 'Guest',
+                    connected: isConnected
+                };
+            });
+            broadcastToAdmins('users_list', updatedUsersList);
         });
 
         // Handle admin requesting survey from user
         socket.on('request_survey', ({ userId }) => {
-            // Find the socket ID for this user
-            let userSocketId = null;
-            for (const [socketId, userData] of users.entries()) {
-                if (userData.userId === userId) {
-                    userSocketId = socketId;
-                    break;
-                }
-            }
+            const userSocket = Array.from(users.entries())
+                .find(([_, data]) => data.userId === userId);
 
-            if (userSocketId) {
-                // Clear any previous declined state when admin requests a new survey
+            if (userSocket) {
+                // User is online, send immediately
                 declinedSurveys.delete(userId);
                 pendingSurveys.set(userId, true);
-                io.to(userSocketId).emit('survey_requested');
+                io.to(userSocket[0]).emit('survey_requested');
+            } else {
+                // User is offline, queue the action
+                const actions = pendingActions.get(userId) || [];
+                actions.push({
+                    type: 'survey',
+                    data: {}
+                });
+                pendingActions.set(userId, actions);
             }
         });
         
@@ -198,11 +218,49 @@ io.on('connection', (socket) => {
     // Handle regular user connection
     console.log('A user connected with ID:', socket.userId);
     
-    // Add user to connected users
+    // Add user to connected users, using stored name if available
+    const storedName = userNames.get(socket.userId);
     users.set(socket.id, { 
-        name: 'Guest',
+        name: storedName || 'Guest',
         userId: socket.userId
     });
+
+    // If there's a stored name, send it to the user
+    if (storedName) {
+        socket.emit('username_updated', { username: storedName });
+    }
+
+    // Broadcast updated users list to all admins
+    const updatedUsersList = Array.from(validIds).map(userId => {
+        const userSockets = Array.from(users.entries()).filter(([_, user]) => user.userId === userId);
+        const isConnected = userSockets.length > 0;
+        return {
+            id: userSockets[0]?.[0] || userId,
+            userId: userId,
+            name: userNames.get(userId) || 'Guest',
+            connected: isConnected
+        };
+    });
+    broadcastToAdmins('users_list', updatedUsersList);
+
+    // Process any pending actions for this user
+    if (socket.userId && pendingActions.has(socket.userId)) {
+        const actions = pendingActions.get(socket.userId);
+        actions.forEach(action => {
+            switch (action.type) {
+                case 'rename':
+                    const username = action.data.username;
+                    userNames.set(socket.userId, username); // Store in persistent map
+                    users.get(socket.id).name = username;
+                    socket.emit('username_updated', { username });
+                    break;
+                case 'survey':
+                    socket.emit('survey_requested');
+                    break;
+            }
+        });
+        pendingActions.delete(socket.userId); // Clear processed actions
+    }
 
     // Check if there's a pending survey for this user and they haven't declined it
     if (pendingSurveys.has(socket.userId) && !declinedSurveys.has(socket.userId)) {
@@ -213,14 +271,6 @@ io.on('connection', (socket) => {
     if (mealSelections.has(socket.userId)) {
         socket.emit('restore_meal_selections', mealSelections.get(socket.userId));
     }
-
-    // Broadcast updated users list to all admins
-    const usersList = Array.from(users.entries()).map(([id, data]) => ({
-        id,
-        userId: data.userId,
-        name: data.name
-    }));
-    broadcastToAdmins('users_list', usersList);
 
     // Handle meal selection
     socket.on('meal_selected', ({ mealType, mealId, mealName }) => {
@@ -240,21 +290,6 @@ io.on('connection', (socket) => {
             ...selections
         }));
         broadcastToAdmins('meal_selections', mealsList);
-    });
-
-    // Handle restore_username event
-    socket.on('restore_username', ({ username }) => {
-        if (users.has(socket.id)) {
-            users.get(socket.id).name = username;
-            
-            // Broadcast updated users list to all admins
-            const updatedUsersList = Array.from(users.entries()).map(([id, data]) => ({
-                id,
-                userId: data.userId,
-                name: data.name
-            }));
-            broadcastToAdmins('users_list', updatedUsersList);
-        }
     });
 
     // Handle alert button click
@@ -301,14 +336,18 @@ io.on('connection', (socket) => {
     // Handle disconnection
     socket.on('disconnect', () => {
         users.delete(socket.id);
-        broadcastToAdmins('user_disconnected', socket.id);
         
         // Send updated users list to all admins
-        const updatedUsersList = Array.from(users.entries()).map(([id, data]) => ({
-            id,
-            userId: data.userId,
-            name: data.name
-        }));
+        const updatedUsersList = Array.from(validIds).map(userId => {
+            const userSockets = Array.from(users.entries()).filter(([_, user]) => user.userId === userId);
+            const isConnected = userSockets.length > 0;
+            return {
+                id: userSockets[0]?.[0] || userId,
+                userId: userId,
+                name: userNames.get(userId) || 'Guest',
+                connected: isConnected
+            };
+        });
         broadcastToAdmins('users_list', updatedUsersList);
         
         console.log('User disconnected');

@@ -257,17 +257,9 @@
         }
     });
 
-    // Load saved username from localStorage on page load
-    const savedUsername = localStorage.getItem('username');
-    if (savedUsername) {
-        usernameSpan.textContent = savedUsername;
-    }
-
-    // Send saved username to server when connecting
+    // Remove the localStorage username handling
     socket.on('connect', () => {
-        if (savedUsername) {
-            socket.emit('restore_username', { username: savedUsername });
-        }
+        console.log('Connected to server');
     });
 
     socket.on('connect_error', (error) => {
@@ -277,10 +269,9 @@
         }
     });
 
-    // Listen for username updates and save to localStorage
+    // Listen for username updates from server
     socket.on('username_updated', ({ username }) => {
         usernameSpan.textContent = username;
-        localStorage.setItem('username', username);
     });
 
     // Handle alert button click
