@@ -25,6 +25,7 @@ const pendingSurveys = new Map();
 const declinedSurveys = new Map(); // Track declined surveys
 const pendingActions = new Map(); // Store actions for offline users
 const userNames = new Map(); // Persistent storage for user names
+const activeSurveyRequests = new Map();
 
 // Routes
 app.get('/', (req, res) => {
@@ -190,7 +191,10 @@ io.on('connection', (socket) => {
                 // User is online, send immediately
                 declinedSurveys.delete(userId);
                 pendingSurveys.set(userId, true);
+                activeSurveyRequests.set(userId, true);
                 io.to(userSocket[0]).emit('survey_requested');
+                // Notify all admin clients to hide the button
+                io.emit('survey_request_status', { userId, status: 'active' });
             } else {
                 // User is offline, queue the action
                 const actions = pendingActions.get(userId) || [];
@@ -294,13 +298,14 @@ io.on('connection', (socket) => {
     });
 
     // Handle survey submission
-    socket.on('survey_submitted', ({ userId, answers }) => {
+    socket.on('survey_submitted', (data) => {
+        const { userId, answers } = data;
+        activeSurveyRequests.delete(userId);
+        pendingSurveys.delete(userId);
+        io.emit('survey_request_status', { userId, status: 'completed' });
         // Store survey responses
         surveyResponses.set(userId, answers);
         
-        // Remove from pending surveys
-        pendingSurveys.delete(userId);
-
         // Broadcast to admins
         const surveyList = Array.from(surveyResponses.entries()).map(([userId, responses]) => ({
             userId,
@@ -312,10 +317,10 @@ io.on('connection', (socket) => {
     // Handle survey declined
     socket.on('survey_declined', () => {
         const userId = socket.userId;
-        if (userId) {
-            declinedSurveys.set(userId, true);
-            pendingSurveys.delete(userId);
-        }
+        activeSurveyRequests.delete(userId);
+        pendingSurveys.delete(userId);
+        declinedSurveys.set(userId, true);
+        io.emit('survey_request_status', { userId, status: 'declined' });
     });
 
     // Handle disconnection
