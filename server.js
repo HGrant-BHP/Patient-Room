@@ -26,6 +26,7 @@ const declinedSurveys = new Map(); // Track declined surveys
 const pendingActions = new Map(); // Store actions for offline users
 const userNames = new Map(); // Persistent storage for user names
 const activeSurveyRequests = new Map();
+const activeAlerts = new Map(); // Track active alerts by userId
 
 // Routes
 app.get('/', (req, res) => {
@@ -284,9 +285,19 @@ io.on('connection', (socket) => {
     // Handle alert button click
     socket.on('alert_clicked', () => {
         const user = users.get(socket.id);
+        if (!user) return;
+
+        // Store alert state
+        activeAlerts.set(user.userId, {
+            socketId: socket.id,
+            username: user.name,
+            timestamp: Date.now()
+        });
+
+        // Broadcast to admins
         broadcastToAdmins('user_alert', {
             socketId: socket.id,
-            userId: socket.userId,
+            userId: user.userId,
             username: user.name
         });
     });
@@ -295,6 +306,18 @@ io.on('connection', (socket) => {
     socket.on('alert_accepted', ({ socketId, userId, username }) => {
         // Forward the acceptance to the user
         io.to(socketId).emit('alert_accepted');
+    });
+
+    // Handle alert resolution
+    socket.on('alert_resolved', ({ socketId, userId, username }) => {
+        // Remove alert state
+        activeAlerts.delete(userId);
+        
+        // Forward the resolution to the user
+        io.to(socketId).emit('alert_resolved');
+        
+        // Notify admins to update their display
+        broadcastToAdmins('alert_resolved', { userId });
     });
 
     // Handle survey submission

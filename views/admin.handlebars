@@ -641,6 +641,17 @@
         max-height: 500px;
         overflow-y: auto;
     }
+
+    .user-name.alert-active {
+        animation: blink 1s infinite;
+        color: #dc3545 !important;
+    }
+
+    @keyframes blink {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
 </style>
 
 <script>
@@ -709,12 +720,11 @@
     });
 
     function updateUsersList() {
-        // Create a map of all valid IDs with their current data
         const allUsers = new Map();
         persistentUserData.forEach((data, userId) => {
             allUsers.set(userId, {
                 ...data,
-                connected: false // Default to disconnected
+                connected: false
             });
         });
 
@@ -723,6 +733,7 @@
             if (allUsers.has(user.userId)) {
                 allUsers.get(user.userId).connected = true;
                 allUsers.get(user.userId).name = user.name;
+                allUsers.get(user.userId).socketId = socketId;
             }
         });
 
@@ -741,6 +752,11 @@
                             <button class="request-survey-btn" id="survey-btn-${user.userId}" onclick="requestSurvey('${user.userId}')">
                                 <i class="fas fa-clipboard-list"></i> Request Survey
                             </button>
+                            ${activeAlerts.has(user.userId) ? `
+                                <button class="accept-btn" onclick="acceptAlert('${user.socketId}', '${user.userId}', '${user.name}')">
+                                    Accept
+                                </button>
+                            ` : ''}
                         </div>
                         <div class="name-edit hidden" id="name-edit-${user.userId}">
                             <input type="text" class="name-input" placeholder="Enter Patient ID" value="">
@@ -826,11 +842,11 @@
         console.log('Alert received:', { socketId, userId, username });
         
         // Add user to active alerts
-        activeAlerts.add(socketId);
+        activeAlerts.add(userId);
         
         // Update user display to show alert state
-        const usernameElement = document.getElementById(`username-${socketId}`);
-        const nameDisplayElement = document.getElementById(`name-display-${socketId}`);
+        const usernameElement = document.getElementById(`username-${userId}`);
+        const nameDisplayElement = document.getElementById(`name-display-${userId}`);
         if (usernameElement) {
             usernameElement.classList.add('alert-active');
             // Add accept button if it doesn't exist
@@ -867,6 +883,9 @@
 
         // Auto-remove popup after 10 seconds
         setTimeout(() => popup.remove(), 10000);
+
+        // Update the user list to show the new state
+        updateUsersList();
     });
 
     function acceptAlert(socketId, userId, username) {
@@ -903,11 +922,11 @@
 
     function resolveAlert(socketId, userId, username) {
         // Remove from active alerts
-        activeAlerts.delete(socketId);
+        activeAlerts.delete(userId);
         
         // Update user display
-        const usernameElement = document.getElementById(`username-${socketId}`);
-        const nameDisplayElement = document.getElementById(`name-display-${socketId}`);
+        const usernameElement = document.getElementById(`username-${userId}`);
+        const nameDisplayElement = document.getElementById(`name-display-${userId}`);
         if (usernameElement) {
             usernameElement.classList.remove('alert-active');
             // Remove resolve button

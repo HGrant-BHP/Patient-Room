@@ -290,10 +290,10 @@
         
         // Start countdown
         const timeoutEnd = Date.now() + (30 * 1000);
-        const countdownInterval = setInterval(() => {
+        window.alertCountdownInterval = setInterval(() => {
             const timeLeft = Math.ceil((timeoutEnd - Date.now()) / 1000);
             if (timeLeft <= 0) {
-                clearInterval(countdownInterval);
+                clearInterval(window.alertCountdownInterval);
                 enableAlertButton();
             } else {
                 const alertStatus = document.getElementById('alertStatus');
@@ -360,6 +360,19 @@
         alertButton.classList.add('alert-accepted');
         const alertStatus = document.getElementById('alertStatus');
         alertStatus.textContent = 'Staff is on their way';
+        
+        // Keep the button disabled but remove the countdown
+        alertButton.disabled = true;
+        clearInterval(window.alertCountdownInterval);
+    });
+
+    // Handle alert resolution
+    socket.on('alert_resolved', () => {
+        // Reset alert button state
+        alertButton.classList.remove('alert-accepted');
+        const alertStatus = document.getElementById('alertStatus');
+        alertStatus.textContent = 'Request Assistance From Staff';
+        enableAlertButton();
     });
 </script> 
 
