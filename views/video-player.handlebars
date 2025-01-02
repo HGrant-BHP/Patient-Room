@@ -1,0 +1,51 @@
+<!-- Hidden element to store userId for client-side access -->
+<span id="userId" style="display: none;">{{userId}}</span>
+
+<div class="min-h-screen bg-[#0A0F1E] relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-br from-[#0A0F1E] via-transparent to-[#1A1F2E] opacity-80"></div>
+    <div class="relative z-10">
+        <div class="container mx-auto px-8 py-6 max-w-[1400px]">
+            <a href="/user/{{userId}}/knowledge-hub" class="back-button mb-6 inline-block">
+                <i class="fas fa-arrow-left"></i>
+                <span class="back-text">Back to Knowledge Hub</span>
+            </a>
+
+            <div class="video-player-container" data-user-id="{{userId}}">
+                <div class="main-video">
+                    <div class="video-details mb-6">
+                        <h1 class="text-4xl font-light text-white mb-4">{{video.title}}</h1>
+                        <p class="text-gray-300 mb-4">{{video.description}}</p>
+                    </div>
+
+                    <div class="video-wrapper rounded-lg overflow-hidden shadow-xl">
+                        <video id="video-player" controls class="w-full">
+                            <source src="{{video.url}}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                </div>
+
+                <div class="related-videos mt-12">
+                    <h2 class="text-2xl font-light text-white mb-6">Related Videos</h2>
+                    <div class="related-videos-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {{#each relatedVideos}}
+                        <div class="video-card bg-[#1A1F2E] rounded-lg overflow-hidden shadow-lg" data-id="{{this.id}}">
+                            <div class="thumbnail relative">
+                                <img src="{{this.thumbnail}}" alt="{{this.title}}" class="w-full h-48 object-cover">
+                                <span class="duration absolute bottom-2 right-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-sm">{{this.duration}}</span>
+                            </div>
+                            <div class="video-info p-4">
+                                <h3 class="text-white text-lg mb-2">{{this.title}}</h3>
+                                <p class="text-gray-400 text-sm">{{this.description}}</p>
+                            </div>
+                        </div>
+                        {{/each}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="/css/video-player.css">
+<script src="/js/video-player.js"></script> 

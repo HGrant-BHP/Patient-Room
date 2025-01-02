@@ -98,6 +98,107 @@ app.get('/user/:id/settings', (req, res) => {
     }
 });
 
+// Knowledge Hub route with user authentication
+app.get('/user/:id/knowledge-hub', (req, res) => {
+    const userId = req.params.id;
+    if (!validIds.has(userId)) {
+        res.status(403).send('Invalid ID. Access denied.');
+        return;
+    }
+
+    // In a real application, this data would come from a database
+    const videos = [
+        {
+            id: 1,
+            title: 'Introduction to Patient Care',
+            description: 'Learn the basics of patient care and best practices.',
+            thumbnail: '/images/video-thumbnails/intro-patient-care.jpg',
+            duration: '5:30'
+        },
+        {
+            id: 2,
+            title: 'Advanced Patient Communication',
+            description: 'Effective communication techniques for healthcare providers.',
+            thumbnail: '/images/video-thumbnails/patient-communication.jpg',
+            duration: '8:15'
+        },
+        {
+            id: 3,
+            title: 'Understanding Medical Equipment',
+            description: 'A guide to common medical equipment in patient rooms.',
+            thumbnail: '/images/video-thumbnails/medical-equipment.jpg',
+            duration: '10:45'
+        }
+    ];
+
+    const recommendedVideos = [
+        {
+            id: 4,
+            title: 'Daily Care Routines',
+            description: 'Essential daily care procedures and best practices.',
+            thumbnail: '/images/video-thumbnails/daily-care.jpg',
+            duration: '7:20'
+        },
+        {
+            id: 5,
+            title: 'Emergency Response',
+            description: 'How to respond in emergency situations.',
+            thumbnail: '/images/video-thumbnails/emergency.jpg',
+            duration: '6:45'
+        }
+    ];
+
+    res.render('knowledge-hub', {
+        userId,
+        videos: videos,
+        recommendedVideos: recommendedVideos,
+        layout: 'main'
+    });
+});
+
+// Video player route with user authentication
+app.get('/user/:id/video/:videoId', (req, res) => {
+    const userId = req.params.id;
+    const videoId = parseInt(req.params.videoId);
+    
+    if (!validIds.has(userId)) {
+        res.status(403).send('Invalid ID. Access denied.');
+        return;
+    }
+    
+    // In a real application, fetch video data from database
+    const video = {
+        id: videoId,
+        title: 'Introduction to Patient Care',
+        description: 'Learn the basics of patient care and best practices.',
+        url: '/videos/intro-patient-care.mp4'
+    };
+
+    const relatedVideos = [
+        {
+            id: 2,
+            title: 'Advanced Patient Communication',
+            description: 'Effective communication techniques for healthcare providers.',
+            thumbnail: '/images/video-thumbnails/patient-communication.jpg',
+            duration: '8:15'
+        },
+        {
+            id: 3,
+            title: 'Understanding Medical Equipment',
+            description: 'A guide to common medical equipment in patient rooms.',
+            thumbnail: '/images/video-thumbnails/medical-equipment.jpg',
+            duration: '10:45'
+        }
+    ];
+
+    res.render('video-player', {
+        userId,
+        video: video,
+        relatedVideos: relatedVideos,
+        layout: 'main'
+    });
+});
+
 app.get('/admin', (req, res) => {
     res.render('admin', { 
         validIds: Array.from(validIds),

@@ -1,0 +1,152 @@
+.knowledge-hub-container {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    color: white;
+}
+
+.search-section {
+    margin-bottom: 2rem;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    font-size: 1rem;
+    background: rgba(17, 24, 39, 0.4);
+    backdrop-filter: blur(8px);
+    color: white;
+}
+
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.view-toggle {
+    margin-bottom: 1rem;
+    text-align: right;
+}
+
+.view-toggle button {
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    margin-left: 0.5rem;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.view-toggle button.active {
+    color: #D4AF37;
+}
+
+/* Grid View */
+.grid-view {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+/* List View */
+.list-view {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.list-view .video-card {
+    display: flex;
+    gap: 1rem;
+}
+
+.list-view .thumbnail {
+    width: 200px;
+    flex-shrink: 0;
+}
+
+.video-card {
+    background: rgba(17, 24, 39, 0.4);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.2s, background-color 0.2s;
+    cursor: pointer;
+}
+
+.video-card:hover {
+    transform: translateY(-2px);
+    background: rgba(26, 34, 52, 0.4);
+}
+
+.thumbnail {
+    position: relative;
+    aspect-ratio: 16/9;
+}
+
+.thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.duration {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.video-info {
+    padding: 1rem;
+}
+
+.video-info h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+    color: white;
+}
+
+.video-info p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.recommended-section {
+    margin-top: 3rem;
+}
+
+.recommended-section h2 {
+    margin-bottom: 1.5rem;
+    color: white;
+    font-size: 1.8rem;
+}
+
+.recommended-videos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .knowledge-hub-container {
+        padding: 1rem;
+    }
+
+    .list-view .video-card {
+        flex-direction: column;
+    }
+
+    .list-view .thumbnail {
+        width: 100%;
+    }
+} 

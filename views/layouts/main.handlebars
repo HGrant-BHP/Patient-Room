@@ -8,9 +8,17 @@
     <script src="/js/translations.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/knowledge-hub.css">
+    <link rel="stylesheet" href="/css/video-player.css">
 </head>
-<body>
-    <div id="root">
+<body class="min-h-screen bg-[#0A0F1E] relative overflow-hidden">
+    <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-[0.03]"></div>
+    <div class="absolute inset-0 bg-gradient-to-br from-[#0A0F1E] via-transparent to-[#1A1F2E] opacity-80"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(37,38,44,0.2)_0%,rgba(10,15,30,0.4)_100%)]"></div>
+    <div class="absolute inset-0 opacity-10">
+        <div class="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/20 via-transparent to-[#D4AF37]/20 animate-gradient"></div>
+    </div>
+    <div class="relative z-10">
         {{{body}}}
     </div>
 </body>
